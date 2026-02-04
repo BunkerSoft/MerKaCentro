@@ -1,0 +1,158 @@
+@model MiniMarket.Application.Services.SalesReportDto
+@{
+    ViewData["Title"] = "Reporte de Ventas";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title mb-0">
+        <i class="bi bi-receipt me-2"></i>Reporte de Ventas
+    </h1>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Dashboard
+    </a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Desde</label>
+                <input type="date" name="from" class="form-control" value="@ViewBag.From" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Hasta</label>
+                <input type="date" name="to" class="form-control" value="@ViewBag.To" />
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary w-100">Generar Reporte</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (Model != null)
+{
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h6 class="text-white-50">Total Ventas</h6>
+                    <h3 class="mb-0">S/ @Model.TotalSales.ToString("N2")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h6 class="text-white-50">Transacciones</h6>
+                    <h3 class="mb-0">@Model.TotalTransactions</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h6 class="text-white-50">Ticket Promedio</h6>
+                    <h3 class="mb-0">S/ @Model.AverageTicket.ToString("N2")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body text-center">
+                    <h6>Total Descuentos</h6>
+                    <h3 class="mb-0">S/ @Model.TotalDiscount.ToString("N2")</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Daily Sales -->
+        <div class="col-md-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-calendar3 me-2"></i>Ventas por Dia</h5>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th class="text-end">Transacciones</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var day in Model.DailySales)
+                            {
+                                <tr>
+                                    <td>@day.Date.ToString("dd/MM/yyyy")</td>
+                                    <td class="text-end">@day.Transactions</td>
+                                    <td class="text-end fw-semibold">S/ @day.Total.ToString("N2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Methods -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-credit-card me-2"></i>Metodos de Pago</h5>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Metodo</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var method in Model.PaymentMethods)
+                            {
+                                <tr>
+                                    <td>@method.Method</td>
+                                    <td class="text-end fw-semibold">S/ @method.Total.ToString("N2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sales by Category -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-tags me-2"></i>Ventas por Categoria</h5>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Categoria</th>
+                        <th class="text-end">Productos Vendidos</th>
+                        <th class="text-end">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var category in Model.SalesByCategory)
+                    {
+                        <tr>
+                            <td>@category.Category</td>
+                            <td class="text-end">@category.ProductsSold</td>
+                            <td class="text-end fw-semibold">S/ @category.Total.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

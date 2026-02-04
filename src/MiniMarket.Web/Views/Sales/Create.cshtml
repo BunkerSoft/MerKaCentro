@@ -1,0 +1,493 @@
+@{
+    ViewData["Title"] = "Nueva Venta";
+    Layout = "_Layout";
+}
+
+<div class="row g-4">
+    <!-- Left Panel: Product Search and Cart -->
+    <div class="col-md-8">
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="input-group input-group-lg">
+                    <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
+                    <input type="text" id="barcodeInput" class="form-control"
+                           placeholder="Escanear codigo de barras o buscar producto..."
+                           autofocus autocomplete="off" />
+                </div>
+                <div id="searchResults" class="list-group mt-2" style="display: none;"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-cart3 me-2"></i>Carrito</span>
+                <span class="badge bg-primary" id="itemCount">0 items</span>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th class="text-center" style="width: 120px;">Cantidad</th>
+                            <th class="text-end" style="width: 100px;">Precio</th>
+                            <th class="text-end" style="width: 100px;">Subtotal</th>
+                            <th style="width: 50px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="cartItems">
+                        <tr id="emptyCart">
+                            <td colspan="5" class="text-center text-muted py-4">
+                                <i class="bi bi-cart fs-1 d-block mb-2"></i>
+                                Agregue productos al carrito
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Panel: Customer, Totals, Payment -->
+    <div class="col-md-4">
+        <!-- Customer Selection -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <i class="bi bi-person me-2"></i>Cliente
+            </div>
+            <div class="card-body">
+                <input type="text" id="customerSearch" class="form-control"
+                       placeholder="Buscar cliente (opcional)..." autocomplete="off" />
+                <div id="customerResults" class="list-group mt-2" style="display: none;"></div>
+                <div id="selectedCustomer" class="alert alert-info mt-2" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong id="customerName"></strong>
+                            <br /><small id="customerDoc" class="text-muted"></small>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearCustomer()">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>
+                    <div class="mt-2 small">
+                        Credito disponible: <strong id="customerCredit">S/ 0.00</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Totals -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Subtotal:</span>
+                    <span id="subtotal">S/ 0.00</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2 text-muted">
+                    <span>Descuento:</span>
+                    <span id="discount">S/ 0.00</span>
+                </div>
+                <hr />
+                <div class="d-flex justify-content-between fs-4 fw-bold">
+                    <span>TOTAL:</span>
+                    <span id="total" class="text-primary">S/ 0.00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <i class="bi bi-cash me-2"></i>Pago
+            </div>
+            <div class="card-body">
+                <div class="btn-group w-100 mb-3" role="group">
+                    <input type="radio" class="btn-check" name="paymentMethod" id="payCash" value="Cash" checked>
+                    <label class="btn btn-outline-success" for="payCash">
+                        <i class="bi bi-cash d-block fs-4"></i>Efectivo
+                    </label>
+                    <input type="radio" class="btn-check" name="paymentMethod" id="payCard" value="Card">
+                    <label class="btn btn-outline-primary" for="payCard">
+                        <i class="bi bi-credit-card d-block fs-4"></i>Tarjeta
+                    </label>
+                    <input type="radio" class="btn-check" name="paymentMethod" id="payCredit" value="Credit">
+                    <label class="btn btn-outline-warning" for="payCredit">
+                        <i class="bi bi-clock-history d-block fs-4"></i>Credito
+                    </label>
+                </div>
+
+                <div id="cashPayment">
+                    <div class="mb-3">
+                        <label class="form-label">Efectivo recibido</label>
+                        <div class="input-group">
+                            <span class="input-group-text">S/</span>
+                            <input type="number" id="cashReceived" class="form-control form-control-lg text-end"
+                                   step="0.01" min="0" value="0.00" />
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between fs-5">
+                        <span>Vuelto:</span>
+                        <span id="change" class="fw-bold text-success">S/ 0.00</span>
+                    </div>
+                </div>
+
+                <div id="cardPayment" style="display: none;">
+                    <div class="mb-3">
+                        <label class="form-label">Referencia (opcional)</label>
+                        <input type="text" id="cardReference" class="form-control" placeholder="Ultimos 4 digitos" />
+                    </div>
+                </div>
+
+                <div id="creditPayment" style="display: none;">
+                    <div class="alert alert-warning mb-0">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Requiere cliente seleccionado
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="d-grid gap-2">
+            <button type="button" id="btnCompleteSale" class="btn btn-success btn-lg" onclick="completeSale()" disabled>
+                <i class="bi bi-check-circle me-2"></i>Completar Venta
+            </button>
+            <button type="button" class="btn btn-outline-danger" onclick="clearCart()">
+                <i class="bi bi-trash me-1"></i>Cancelar
+            </button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    let cart = [];
+    let selectedCustomer = null;
+    let searchTimeout = null;
+
+    // Product search
+    const barcodeInput = document.getElementById('barcodeInput');
+    const searchResults = document.getElementById('searchResults');
+
+    barcodeInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        const term = this.value.trim();
+
+        if (term.length < 2) {
+            searchResults.style.display = 'none';
+            return;
+        }
+
+        searchTimeout = setTimeout(() => searchProducts(term), 300);
+    });
+
+    barcodeInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const term = this.value.trim();
+            if (term) {
+                searchByBarcode(term);
+            }
+        }
+    });
+
+    async function searchProducts(term) {
+        try {
+            const response = await fetch(`/Sales/SearchProduct?term=${encodeURIComponent(term)}`);
+            const data = await response.json();
+
+            if (data.products.length > 0) {
+                searchResults.innerHTML = data.products.map(p => `
+                    <button type="button" class="list-group-item list-group-item-action"
+                            onclick="addToCart('${p.id}', '${p.name}', ${p.salePrice}, '${p.unit}', ${p.currentStock})">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <strong>${p.name}</strong>
+                                <br/><small class="text-muted">${p.code}${p.barcode ? ' | ' + p.barcode : ''}</small>
+                            </div>
+                            <div class="text-end">
+                                <strong class="text-primary">S/ ${p.salePrice.toFixed(2)}</strong>
+                                <br/><small class="text-muted">Stock: ${p.currentStock}</small>
+                            </div>
+                        </div>
+                    </button>
+                `).join('');
+                searchResults.style.display = 'block';
+            } else {
+                searchResults.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Error searching products:', error);
+        }
+    }
+
+    async function searchByBarcode(barcode) {
+        try {
+            const response = await fetch(`/Sales/GetProductByBarcode?barcode=${encodeURIComponent(barcode)}`);
+            if (response.ok) {
+                const p = await response.json();
+                addToCart(p.id, p.name, p.salePrice, p.unit, p.currentStock);
+                barcodeInput.value = '';
+                searchResults.style.display = 'none';
+            } else {
+                // Try regular search
+                searchProducts(barcode);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    function addToCart(productId, name, price, unit, stock) {
+        const existingItem = cart.find(i => i.productId === productId);
+
+        if (existingItem) {
+            if (existingItem.quantity < stock) {
+                existingItem.quantity++;
+                existingItem.subtotal = existingItem.quantity * existingItem.unitPrice;
+            } else {
+                alert('No hay suficiente stock');
+                return;
+            }
+        } else {
+            cart.push({
+                productId,
+                name,
+                unitPrice: price,
+                unit,
+                stock,
+                quantity: 1,
+                subtotal: price
+            });
+        }
+
+        barcodeInput.value = '';
+        searchResults.style.display = 'none';
+        barcodeInput.focus();
+        updateCartDisplay();
+    }
+
+    function updateQuantity(productId, delta) {
+        const item = cart.find(i => i.productId === productId);
+        if (item) {
+            const newQty = item.quantity + delta;
+            if (newQty > 0 && newQty <= item.stock) {
+                item.quantity = newQty;
+                item.subtotal = item.quantity * item.unitPrice;
+                updateCartDisplay();
+            } else if (newQty <= 0) {
+                removeFromCart(productId);
+            } else {
+                alert('No hay suficiente stock');
+            }
+        }
+    }
+
+    function removeFromCart(productId) {
+        cart = cart.filter(i => i.productId !== productId);
+        updateCartDisplay();
+    }
+
+    function clearCart() {
+        if (cart.length === 0 || confirm('¿Esta seguro de cancelar la venta?')) {
+            cart = [];
+            selectedCustomer = null;
+            document.getElementById('selectedCustomer').style.display = 'none';
+            document.getElementById('customerSearch').value = '';
+            updateCartDisplay();
+        }
+    }
+
+    function updateCartDisplay() {
+        const cartItems = document.getElementById('cartItems');
+        const emptyCart = document.getElementById('emptyCart');
+
+        if (cart.length === 0) {
+            cartItems.innerHTML = `
+                <tr id="emptyCart">
+                    <td colspan="5" class="text-center text-muted py-4">
+                        <i class="bi bi-cart fs-1 d-block mb-2"></i>
+                        Agregue productos al carrito
+                    </td>
+                </tr>
+            `;
+        } else {
+            cartItems.innerHTML = cart.map(item => `
+                <tr>
+                    <td>
+                        <strong>${item.name}</strong>
+                        <br/><small class="text-muted">${item.unit}</small>
+                    </td>
+                    <td class="text-center">
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-outline-secondary" onclick="updateQuantity('${item.productId}', -1)">-</button>
+                            <span class="btn btn-light disabled">${item.quantity}</span>
+                            <button type="button" class="btn btn-outline-secondary" onclick="updateQuantity('${item.productId}', 1)">+</button>
+                        </div>
+                    </td>
+                    <td class="text-end">S/ ${item.unitPrice.toFixed(2)}</td>
+                    <td class="text-end fw-bold">S/ ${item.subtotal.toFixed(2)}</td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeFromCart('${item.productId}')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        const subtotal = cart.reduce((sum, item) => sum + item.subtotal, 0);
+        document.getElementById('itemCount').textContent = `${cart.length} items`;
+        document.getElementById('subtotal').textContent = `S/ ${subtotal.toFixed(2)}`;
+        document.getElementById('total').textContent = `S/ ${subtotal.toFixed(2)}`;
+
+        updateChange();
+        validateSale();
+    }
+
+    // Customer search
+    const customerSearch = document.getElementById('customerSearch');
+    const customerResults = document.getElementById('customerResults');
+
+    customerSearch.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        const term = this.value.trim();
+
+        if (term.length < 2) {
+            customerResults.style.display = 'none';
+            return;
+        }
+
+        searchTimeout = setTimeout(() => searchCustomers(term), 300);
+    });
+
+    async function searchCustomers(term) {
+        try {
+            const response = await fetch(`/Sales/SearchCustomer?term=${encodeURIComponent(term)}`);
+            const data = await response.json();
+
+            if (data.customers.length > 0) {
+                customerResults.innerHTML = data.customers.map(c => `
+                    <button type="button" class="list-group-item list-group-item-action"
+                            onclick="selectCustomer('${c.id}', '${c.name}', '${c.documentNumber || ''}', ${c.availableCredit})">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <strong>${c.name}</strong>
+                                ${c.documentNumber ? `<br/><small class="text-muted">${c.documentNumber}</small>` : ''}
+                            </div>
+                            <div class="text-end">
+                                <small>Credito: S/ ${c.availableCredit.toFixed(2)}</small>
+                            </div>
+                        </div>
+                    </button>
+                `).join('');
+                customerResults.style.display = 'block';
+            } else {
+                customerResults.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Error searching customers:', error);
+        }
+    }
+
+    function selectCustomer(id, name, doc, credit) {
+        selectedCustomer = { id, name, doc, credit };
+        document.getElementById('customerName').textContent = name;
+        document.getElementById('customerDoc').textContent = doc || 'Sin documento';
+        document.getElementById('customerCredit').textContent = `S/ ${credit.toFixed(2)}`;
+        document.getElementById('selectedCustomer').style.display = 'block';
+        document.getElementById('customerSearch').value = '';
+        customerResults.style.display = 'none';
+        validateSale();
+    }
+
+    function clearCustomer() {
+        selectedCustomer = null;
+        document.getElementById('selectedCustomer').style.display = 'none';
+        document.getElementById('customerSearch').value = '';
+        validateSale();
+    }
+
+    // Payment handling
+    document.querySelectorAll('input[name="paymentMethod"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            document.getElementById('cashPayment').style.display = this.value === 'Cash' ? 'block' : 'none';
+            document.getElementById('cardPayment').style.display = this.value === 'Card' ? 'block' : 'none';
+            document.getElementById('creditPayment').style.display = this.value === 'Credit' ? 'block' : 'none';
+            validateSale();
+        });
+    });
+
+    document.getElementById('cashReceived').addEventListener('input', updateChange);
+
+    function updateChange() {
+        const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
+        const received = parseFloat(document.getElementById('cashReceived').value) || 0;
+        const change = Math.max(0, received - total);
+        document.getElementById('change').textContent = `S/ ${change.toFixed(2)}`;
+        validateSale();
+    }
+
+    function validateSale() {
+        const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
+        const method = document.querySelector('input[name="paymentMethod"]:checked').value;
+        let isValid = cart.length > 0;
+
+        if (method === 'Cash') {
+            const received = parseFloat(document.getElementById('cashReceived').value) || 0;
+            isValid = isValid && received >= total;
+        } else if (method === 'Credit') {
+            isValid = isValid && selectedCustomer !== null && selectedCustomer.credit >= total;
+        }
+
+        document.getElementById('btnCompleteSale').disabled = !isValid;
+    }
+
+    async function completeSale() {
+        const method = document.querySelector('input[name="paymentMethod"]:checked').value;
+        const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
+
+        const data = {
+            customerId: selectedCustomer?.id || null,
+            isCredit: method === 'Credit',
+            notes: null,
+            items: cart.map(item => ({
+                productId: item.productId,
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+                discountPercent: null
+            })),
+            payments: method === 'Credit' ? [] : [{
+                method: method,
+                amount: total,
+                reference: method === 'Card' ? document.getElementById('cardReference').value : null
+            }]
+        };
+
+        try {
+            const response = await fetch('/Sales/Create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                alert(`Venta completada!\nNumero: ${result.saleNumber}`);
+                window.location.href = `/Sales/Details/${result.saleId}`;
+            } else {
+                alert('Error: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al procesar la venta');
+        }
+    }
+</script>
+<form id="antiForgeryForm">
+    @Html.AntiForgeryToken()
+</form>
+}

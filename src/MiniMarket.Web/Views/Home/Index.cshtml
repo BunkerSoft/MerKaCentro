@@ -1,0 +1,117 @@
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<h1 class="page-title">
+    <i class="bi bi-speedometer2 me-2"></i>Dashboard
+</h1>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="stats-value">S/ 0.00</div>
+                <div class="stats-label">Ventas del Dia</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card success">
+            <div class="card-body">
+                <div class="stats-value">0</div>
+                <div class="stats-label">Transacciones Hoy</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card warning">
+            <div class="card-body">
+                <div class="stats-value">0</div>
+                <div class="stats-label">Productos en Alerta</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="stats-value">S/ 0.00</div>
+                <div class="stats-label">Efectivo en Caja</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-lightning me-2"></i>Accesos Rapidos
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <a asp-controller="Sales" asp-action="Create" class="btn btn-primary btn-lg w-100 py-4">
+                            <i class="bi bi-cart-plus d-block fs-1 mb-2"></i>
+                            Nueva Venta
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a asp-controller="Products" asp-action="Index" class="btn btn-outline-primary btn-lg w-100 py-4">
+                            <i class="bi bi-box-seam d-block fs-1 mb-2"></i>
+                            Ver Productos
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a asp-controller="Products" asp-action="LowStock" class="btn btn-warning btn-lg w-100 py-4">
+                            <i class="bi bi-exclamation-triangle d-block fs-1 mb-2"></i>
+                            Stock Bajo
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a asp-controller="Customers" asp-action="Index" class="btn btn-outline-secondary btn-lg w-100 py-4">
+                            <i class="bi bi-people d-block fs-1 mb-2"></i>
+                            Clientes
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a asp-controller="CashRegister" asp-action="Index" class="btn btn-success btn-lg w-100 py-4">
+                            <i class="bi bi-cash-stack d-block fs-1 mb-2"></i>
+                            Abrir Caja
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a asp-controller="Categories" asp-action="Index" class="btn btn-outline-secondary btn-lg w-100 py-4">
+                            <i class="bi bi-tags d-block fs-1 mb-2"></i>
+                            Categorias
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-clock-history me-2"></i>Ultimas Ventas
+            </div>
+            <div class="card-body">
+                <p class="text-muted text-center py-4">
+                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                    No hay ventas recientes
+                </p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <i class="bi bi-exclamation-triangle me-2"></i>Alertas
+            </div>
+            <div class="card-body">
+                <p class="text-muted text-center py-3">
+                    <i class="bi bi-check-circle fs-3 d-block mb-2 text-success"></i>
+                    Sin alertas pendientes
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

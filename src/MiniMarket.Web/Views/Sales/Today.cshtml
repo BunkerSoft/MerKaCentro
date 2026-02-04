@@ -1,0 +1,128 @@
+@model IEnumerable<MiniMarket.Application.DTOs.SaleDto>
+@{
+    ViewData["Title"] = "Ventas de Hoy";
+    var summary = ViewBag.Summary as MiniMarket.Application.DTOs.SaleSummaryDto;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title mb-0">
+        <i class="bi bi-calendar-day me-2"></i>Ventas de Hoy
+        <small class="text-muted">@DateTime.Today.ToString("dd/MM/yyyy")</small>
+    </h1>
+    <div>
+        <a asp-action="Index" class="btn btn-outline-secondary me-2">
+            <i class="bi bi-list me-1"></i>Ver Todas
+        </a>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-cart-plus me-1"></i>Nueva Venta
+        </a>
+    </div>
+</div>
+
+@if (summary != null)
+{
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card stats-card success">
+                <div class="card-body text-center">
+                    <div class="stats-value">S/ @summary.TotalAmount.ToString("N2")</div>
+                    <div class="stats-label">Total Vendido</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card">
+                <div class="card-body text-center">
+                    <div class="stats-value">@summary.TotalSales</div>
+                    <div class="stats-label">Transacciones</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card">
+                <div class="card-body text-center">
+                    <div class="stats-value">S/ @summary.TotalCash.ToString("N2")</div>
+                    <div class="stats-label">Efectivo</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card warning">
+                <div class="card-body text-center">
+                    <div class="stats-value">S/ @summary.TotalCredit.ToString("N2")</div>
+                    <div class="stats-label">Credito</div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Numero</th>
+                    <th>Hora</th>
+                    <th>Cliente</th>
+                    <th class="text-end">Total</th>
+                    <th class="text-center">Pago</th>
+                    <th class="text-center">Estado</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var sale in Model.OrderByDescending(s => s.CreatedAt))
+                    {
+                        <tr>
+                            <td><code>@sale.Number</code></td>
+                            <td>@sale.CreatedAt.ToString("HH:mm:ss")</td>
+                            <td>@(sale.CustomerName ?? "Venta general")</td>
+                            <td class="text-end price fw-bold">S/ @sale.Total.ToString("N2")</td>
+                            <td class="text-center">
+                                @if (sale.IsCredit)
+                                {
+                                    <span class="badge bg-warning">Credito</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">@sale.PaymentMethod</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                @if (sale.Status == MiniMarket.Domain.Enums.SaleStatus.Completed)
+                                {
+                                    <span class="badge bg-success">Completada</span>
+                                }
+                                else if (sale.Status == MiniMarket.Domain.Enums.SaleStatus.Cancelled)
+                                {
+                                    <span class="badge bg-danger">Cancelada</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Pendiente</span>
+                                }
+                            </td>
+                            <td class="table-actions text-center">
+                                <a asp-action="Details" asp-route-id="@sale.Id" class="btn btn-sm btn-outline-info" title="Ver">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="bi bi-cart fs-1 d-block mb-2"></i>
+                            No hay ventas registradas hoy
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

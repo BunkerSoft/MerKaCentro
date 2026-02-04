@@ -1,0 +1,193 @@
+@model MiniMarket.Application.DTOs.PurchaseOrderDto
+@using MiniMarket.Domain.Enums
+@{
+    ViewData["Title"] = $"Orden {Model.Number}";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title mb-0">
+        <i class="bi bi-box-seam me-2"></i>Orden @Model.Number
+    </h1>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Volver
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i>Items de la Orden</h5>
+                <span class="badge bg-primary fs-6">@Model.Items.Count items</span>
+            </div>
+            <div class="card-body p-0">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th class="text-end">Cantidad</th>
+                            <th class="text-end">Recibido</th>
+                            <th class="text-end">Pendiente</th>
+                            <th class="text-end">Costo Unit.</th>
+                            <th class="text-end">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Items)
+                        {
+                            <tr>
+                                <td>@item.ProductName</td>
+                                <td class="text-end">@item.Quantity.ToString("N0")</td>
+                                <td class="text-end">
+                                    @if (item.ReceivedQuantity > 0)
+                                    {
+                                        <span class="text-success">@item.ReceivedQuantity.ToString("N0")</span>
+                                    }
+                                    else
+                                    {
+                                        <span>0</span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    @if (item.PendingQuantity > 0)
+                                    {
+                                        <span class="text-warning fw-semibold">@item.PendingQuantity.ToString("N0")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-success"><i class="bi bi-check"></i></span>
+                                    }
+                                </td>
+                                <td class="text-end">S/ @item.UnitCost.ToString("N2")</td>
+                                <td class="text-end fw-semibold">S/ @item.Total.ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-light">
+                            <td colspan="5" class="text-end fw-bold">Total:</td>
+                            <td class="text-end fw-bold fs-5">S/ @Model.Total.ToString("N2")</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Informacion</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">Numero</dt>
+                    <dd class="col-sm-7">@Model.Number</dd>
+
+                    <dt class="col-sm-5">Proveedor</dt>
+                    <dd class="col-sm-7">@Model.SupplierName</dd>
+
+                    <dt class="col-sm-5">Usuario</dt>
+                    <dd class="col-sm-7">@Model.UserName</dd>
+
+                    <dt class="col-sm-5">Estado</dt>
+                    <dd class="col-sm-7">
+                        @switch (Model.Status)
+                        {
+                            case PurchaseOrderStatus.Pending:
+                                <span class="badge bg-warning text-dark">Pendiente</span>
+                                break;
+                            case PurchaseOrderStatus.PartiallyReceived:
+                                <span class="badge bg-info">Parcialmente Recibida</span>
+                                break;
+                            case PurchaseOrderStatus.Received:
+                                <span class="badge bg-success">Recibida</span>
+                                break;
+                            case PurchaseOrderStatus.Cancelled:
+                                <span class="badge bg-secondary">Cancelada</span>
+                                break;
+                        }
+                    </dd>
+
+                    <dt class="col-sm-5">Creada</dt>
+                    <dd class="col-sm-7">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</dd>
+
+                    @if (Model.ReceivedAt.HasValue)
+                    {
+                        <dt class="col-sm-5">Recibida</dt>
+                        <dd class="col-sm-7">@Model.ReceivedAt.Value.ToString("dd/MM/yyyy HH:mm")</dd>
+                    }
+                </dl>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.Notes))
+        {
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-sticky me-2"></i>Notas</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">@Model.Notes</p>
+                </div>
+            </div>
+        }
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-gear me-2"></i>Acciones</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.Status == PurchaseOrderStatus.Pending || Model.Status == PurchaseOrderStatus.PartiallyReceived)
+                {
+                    <a asp-action="Receive" asp-route-id="@Model.Id" class="btn btn-success w-100 mb-2">
+                        <i class="bi bi-box-arrow-in-down me-1"></i>Recibir Mercancia
+                    </a>
+
+                    <form asp-action="MarkAsReceived" asp-route-id="@Model.Id" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-outline-success w-100 mb-2"
+                                onclick="return confirm('¿Marcar toda la orden como recibida? Se actualizara el inventario.')">
+                            <i class="bi bi-check-all me-1"></i>Marcar Todo Recibido
+                        </button>
+                    </form>
+
+                    <button type="button" class="btn btn-outline-danger w-100" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                        <i class="bi bi-x-circle me-1"></i>Cancelar Orden
+                    </button>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">No hay acciones disponibles para esta orden.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (Model.Status == PurchaseOrderStatus.Pending || Model.Status == PurchaseOrderStatus.PartiallyReceived)
+{
+    <div class="modal fade" id="cancelModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form asp-action="Cancel" asp-route-id="@Model.Id" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="modal-header">
+                        <h5 class="modal-title">Cancelar Orden</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Motivo de cancelacion (opcional)</label>
+                            <textarea name="reason" class="form-control" rows="3" placeholder="Ingrese el motivo..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="submit" class="btn btn-danger">Cancelar Orden</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}

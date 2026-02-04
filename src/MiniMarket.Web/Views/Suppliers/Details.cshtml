@@ -1,0 +1,150 @@
+@model MiniMarket.Application.DTOs.SupplierDto
+@{
+    ViewData["Title"] = "Detalles del Proveedor";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title mb-0">
+        <i class="bi bi-truck me-2"></i>@Model.Name
+    </h1>
+    <div>
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary">
+            <i class="bi bi-pencil me-1"></i>Editar
+        </a>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Volver
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Informacion General</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Nombre</dt>
+                    <dd class="col-sm-8">@Model.Name</dd>
+
+                    <dt class="col-sm-4">Razon Social</dt>
+                    <dd class="col-sm-8">@(Model.BusinessName ?? "-")</dd>
+
+                    <dt class="col-sm-4">RUC</dt>
+                    <dd class="col-sm-8">@(Model.Ruc ?? "-")</dd>
+
+                    <dt class="col-sm-4">Contacto</dt>
+                    <dd class="col-sm-8">@(Model.ContactPerson ?? "-")</dd>
+
+                    <dt class="col-sm-4">Estado</dt>
+                    <dd class="col-sm-8">
+                        @if (Model.IsActive)
+                        {
+                            <span class="badge bg-success">Activo</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Inactivo</span>
+                        }
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-telephone me-2"></i>Contacto</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Telefono</dt>
+                    <dd class="col-sm-8">
+                        @if (!string.IsNullOrEmpty(Model.Phone))
+                        {
+                            <a href="tel:@Model.Phone">@Model.Phone</a>
+                        }
+                        else
+                        {
+                            <span>-</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4">Email</dt>
+                    <dd class="col-sm-8">
+                        @if (!string.IsNullOrEmpty(Model.Email))
+                        {
+                            <a href="mailto:@Model.Email">@Model.Email</a>
+                        }
+                        else
+                        {
+                            <span>-</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4">Direccion</dt>
+                    <dd class="col-sm-8">@(Model.Address ?? "-")</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.Notes))
+{
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-sticky me-2"></i>Notas</h5>
+        </div>
+        <div class="card-body">
+            <p class="mb-0">@Model.Notes</p>
+        </div>
+    </div>
+}
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Auditoria</h5>
+    </div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-4">Creado</dt>
+            <dd class="col-sm-8">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</dd>
+
+            <dt class="col-sm-4">Ultima Actualizacion</dt>
+            <dd class="col-sm-8">@(Model.UpdatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "-")</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="d-flex gap-2">
+    @if (Model.IsActive)
+    {
+        <form asp-action="Deactivate" asp-route-id="@Model.Id" method="post">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-warning"
+                    onclick="return confirm('¿Desactivar este proveedor?')">
+                <i class="bi bi-pause me-1"></i>Desactivar
+            </button>
+        </form>
+    }
+    else
+    {
+        <form asp-action="Activate" asp-route-id="@Model.Id" method="post">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-success">
+                <i class="bi bi-play me-1"></i>Activar
+            </button>
+        </form>
+    }
+
+    <form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-danger"
+                onclick="return confirm('¿Eliminar este proveedor? Esta accion no se puede deshacer.')">
+            <i class="bi bi-trash me-1"></i>Eliminar
+        </button>
+    </form>
+</div>

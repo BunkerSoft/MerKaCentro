@@ -1,0 +1,110 @@
+@model IReadOnlyList<MiniMarket.Application.Services.BackupInfo>
+@{
+    ViewData["Title"] = "Backups";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title mb-0">
+        <i class="bi bi-hdd me-2"></i>Respaldos de Base de Datos
+    </h1>
+    <div class="d-flex gap-2">
+        <form asp-action="Cleanup" method="post" class="d-inline">
+            <input type="hidden" name="keepCount" value="10" />
+            <button type="submit" class="btn btn-outline-warning" onclick="return confirm('¿Eliminar backups antiguos? Se mantendran los ultimos 10.')">
+                <i class="bi bi-trash me-1"></i>Limpiar Antiguos
+            </button>
+        </form>
+        <form asp-action="Create" method="post" class="d-inline">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-1"></i>Crear Backup
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="alert alert-info">
+    <i class="bi bi-info-circle me-2"></i>
+    Los backups se almacenan localmente. Se recomienda crear un backup antes de actualizaciones importantes
+    y copiar periodicamente a un almacenamiento externo.
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-inbox text-muted" style="font-size: 48px;"></i>
+            <h5 class="mt-3 text-muted">No hay backups disponibles</h5>
+            <p class="text-muted">Cree su primer backup haciendo clic en el boton "Crear Backup"</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Archivo</th>
+                        <th>Tamaño</th>
+                        <th>Fecha</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var backup in Model)
+                    {
+                        var sizeKb = backup.SizeBytes / 1024.0;
+                        var sizeMb = sizeKb / 1024.0;
+                        var sizeDisplay = sizeMb >= 1 ? $"{sizeMb:N2} MB" : $"{sizeKb:N2} KB";
+
+                        <tr>
+                            <td>
+                                <i class="bi bi-file-earmark-binary me-1"></i>
+                                @backup.FileName
+                            </td>
+                            <td>@sizeDisplay</td>
+                            <td>@backup.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="text-end">
+                                <form asp-action="Restore" method="post" class="d-inline">
+                                    <input type="hidden" name="backupPath" value="@backup.FilePath" />
+                                    <button type="submit" class="btn btn-sm btn-outline-success"
+                                            onclick="return confirm('¿Restaurar este backup? Se reemplazara la base de datos actual.')">
+                                        <i class="bi bi-arrow-counterclockwise"></i> Restaurar
+                                    </button>
+                                </form>
+                                <form asp-action="Delete" method="post" class="d-inline">
+                                    <input type="hidden" name="backupPath" value="@backup.FilePath" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                            onclick="return confirm('¿Eliminar este backup?')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-gear me-2"></i>Backup Manual</h5>
+    </div>
+    <div class="card-body">
+        <form asp-action="Create" method="post" class="row g-3 align-items-end">
+            <div class="col-md-6">
+                <label class="form-label">Nombre personalizado (opcional)</label>
+                <input type="text" name="customName" class="form-control" placeholder="mi_backup_especial.bak" />
+                <small class="text-muted">Deje en blanco para usar nombre automatico con fecha</small>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-download me-1"></i>Crear Backup
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

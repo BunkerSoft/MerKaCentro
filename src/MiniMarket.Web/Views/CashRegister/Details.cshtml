@@ -1,0 +1,197 @@
+@model MiniMarket.Application.DTOs.CashRegisterDto
+@{
+    ViewData["Title"] = "Detalle de Caja";
+    var statusBadge = Model?.Status == MiniMarket.Domain.Enums.CashRegisterStatus.Open
+        ? "bg-success" : "bg-secondary";
+    var statusText = Model?.Status == MiniMarket.Domain.Enums.CashRegisterStatus.Open
+        ? "Abierta" : "Cerrada";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title mb-0">
+        <i class="bi bi-cash-stack me-2"></i>Detalle de Caja
+        <span class="badge @statusBadge ms-2">@statusText</span>
+    </h1>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Volver
+    </a>
+</div>
+
+@if (Model != null)
+{
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-info-circle me-2"></i>Informacion General
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <dl>
+                                <dt>Usuario</dt>
+                                <dd>@Model.UserName</dd>
+
+                                <dt>Fecha de Apertura</dt>
+                                <dd>@Model.OpenedAt.ToString("dd/MM/yyyy HH:mm")</dd>
+
+                                <dt>Fecha de Cierre</dt>
+                                <dd>
+                                    @if (Model.ClosedAt.HasValue)
+                                    {
+                                        @Model.ClosedAt.Value.ToString("dd/MM/yyyy HH:mm")
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Aun abierta</span>
+                                    }
+                                </dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-6">
+                            <dl>
+                                <dt>Duracion</dt>
+                                <dd>
+                                    @{
+                                        var endTime = Model.ClosedAt ?? DateTime.Now;
+                                        var duration = endTime - Model.OpenedAt;
+                                        @($"{(int)duration.TotalHours}h {duration.Minutes}m")
+                                    }
+                                </dd>
+
+                                <dt>Total de Transacciones</dt>
+                                <dd>@Model.Summary.SalesCount ventas</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-calculator me-2"></i>Resumen Financiero
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless mb-0">
+                        <tbody>
+                            <tr>
+                                <td>Efectivo Inicial</td>
+                                <td class="text-end">S/ @Model.InitialCash.ToString("N2")</td>
+                            </tr>
+                            <tr class="table-success">
+                                <td><i class="bi bi-cart me-2"></i>Ventas en Efectivo</td>
+                                <td class="text-end">+ S/ @Model.Summary.TotalSales.ToString("N2")</td>
+                            </tr>
+                            <tr class="table-info">
+                                <td><i class="bi bi-arrow-up-circle me-2"></i>Depositos</td>
+                                <td class="text-end">+ S/ @Model.Summary.TotalDeposits.ToString("N2")</td>
+                            </tr>
+                            <tr class="table-info">
+                                <td><i class="bi bi-credit-card me-2"></i>Pagos de Credito Recibidos</td>
+                                <td class="text-end">+ S/ @Model.Summary.TotalCreditPayments.ToString("N2")</td>
+                            </tr>
+                            <tr class="table-warning">
+                                <td><i class="bi bi-arrow-down-circle me-2"></i>Retiros</td>
+                                <td class="text-end">- S/ @Model.Summary.TotalWithdrawals.ToString("N2")</td>
+                            </tr>
+                            <tr class="table-warning">
+                                <td><i class="bi bi-receipt me-2"></i>Gastos</td>
+                                <td class="text-end">- S/ @Model.Summary.TotalExpenses.ToString("N2")</td>
+                            </tr>
+                            <tr class="table-primary fw-bold">
+                                <td>Efectivo Esperado</td>
+                                <td class="text-end">S/ @Model.ExpectedCash.ToString("N2")</td>
+                            </tr>
+                            @if (Model.FinalCash.HasValue)
+                            {
+                                <tr>
+                                    <td>Efectivo Contado</td>
+                                    <td class="text-end">S/ @Model.FinalCash.Value.ToString("N2")</td>
+                                </tr>
+                                <tr class="@(Model.Difference == 0 ? "table-success" : Model.Difference > 0 ? "table-info" : "table-danger") fw-bold">
+                                    <td>Diferencia</td>
+                                    <td class="text-end">
+                                        @{
+                                            var diff = Model.Difference ?? 0;
+                                            var sign = diff >= 0 ? "+" : "";
+                                        }
+                                        @sign S/ @diff.ToString("N2")
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="row">
+                <div class="col-6 mb-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <div class="text-muted small">Inicial</div>
+                            <div class="fs-5 fw-bold">S/ @Model.InitialCash.ToString("N2")</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 mb-3">
+                    <div class="card text-center bg-success text-white">
+                        <div class="card-body">
+                            <div class="small">Ventas</div>
+                            <div class="fs-5 fw-bold">S/ @Model.Summary.TotalSales.ToString("N2")</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if (Model.FinalCash.HasValue)
+            {
+                <div class="card @(Model.Difference == 0 ? "bg-success" : Model.Difference > 0 ? "bg-info" : "bg-danger") text-white">
+                    <div class="card-body text-center">
+                        <h5>
+                            @if (Model.Difference == 0)
+                            {
+                                <i class="bi bi-check-circle me-2"></i>@("Cuadre Exacto")
+                            }
+                            else if (Model.Difference > 0)
+                            {
+                                <i class="bi bi-arrow-up-circle me-2"></i>@("Sobrante")
+                            }
+                            else
+                            {
+                                <i class="bi bi-exclamation-triangle me-2"></i>@("Faltante")
+                            }
+                        </h5>
+                        <div class="display-6 fw-bold">
+                            @{
+                                var difference = Model.Difference ?? 0;
+                                var diffSign = difference >= 0 ? "+" : "";
+                            }
+                            @diffSign S/ @Math.Abs(difference).ToString("N2")
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (Model.Status == MiniMarket.Domain.Enums.CashRegisterStatus.Open)
+            {
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Esta caja aun esta abierta. <a asp-action="Current" class="alert-link">Ir a la caja</a>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.Notes))
+            {
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <i class="bi bi-sticky me-2"></i>Notas
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-0 text-muted">@Model.Notes</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}

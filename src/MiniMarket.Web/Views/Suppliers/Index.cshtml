@@ -1,0 +1,156 @@
+@model MiniMarket.Application.Common.PagedResult<MiniMarket.Application.DTOs.SupplierDto>
+@{
+    ViewData["Title"] = "Proveedores";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title mb-0">
+        <i class="bi bi-truck me-2"></i>Proveedores
+    </h1>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>Nuevo Proveedor
+    </a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-10">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" name="search" class="form-control"
+                           placeholder="Buscar por nombre, RUC o contacto..."
+                           value="@ViewBag.Search" />
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Buscar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Proveedor</th>
+                    <th>RUC</th>
+                    <th>Contacto</th>
+                    <th>Telefono</th>
+                    <th class="text-center">Estado</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Items.Any())
+                {
+                    @foreach (var supplier in Model.Items)
+                    {
+                        <tr>
+                            <td>
+                                <a asp-action="Details" asp-route-id="@supplier.Id" class="text-decoration-none fw-semibold">
+                                    @supplier.Name
+                                </a>
+                                @if (!string.IsNullOrEmpty(supplier.BusinessName))
+                                {
+                                    <br /><small class="text-muted">@supplier.BusinessName</small>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(supplier.Ruc))
+                                {
+                                    @supplier.Ruc
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                            <td>@(supplier.ContactPerson ?? "-")</td>
+                            <td>@(supplier.Phone ?? "-")</td>
+                            <td class="text-center">
+                                @if (supplier.IsActive)
+                                {
+                                    <span class="badge bg-success">Activo</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Inactivo</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group btn-group-sm">
+                                    <a asp-action="Edit" asp-route-id="@supplier.Id" class="btn btn-outline-secondary"
+                                       title="Editar">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    @if (supplier.IsActive)
+                                    {
+                                        <form asp-action="Deactivate" asp-route-id="@supplier.Id" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-outline-warning" title="Desactivar"
+                                                    onclick="return confirm('¿Desactivar este proveedor?')">
+                                                <i class="bi bi-pause"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <form asp-action="Activate" asp-route-id="@supplier.Id" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-outline-success" title="Activar">
+                                                <i class="bi bi-play"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    <form asp-action="Delete" asp-route-id="@supplier.Id" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-outline-danger" title="Eliminar"
+                                                onclick="return confirm('¿Eliminar este proveedor? Esta accion no se puede deshacer.')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">
+                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                            No se encontraron proveedores
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@if (Model != null && Model.TotalPages > 1)
+{
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                <a class="page-link" asp-action="Index" asp-route-page="@(Model.PageNumber - 1)" asp-route-search="@ViewBag.Search">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@i" asp-route-search="@ViewBag.Search">@i</a>
+                </li>
+            }
+            <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+                <a class="page-link" asp-action="Index" asp-route-page="@(Model.PageNumber + 1)" asp-route-search="@ViewBag.Search">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+}

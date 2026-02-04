@@ -1,0 +1,112 @@
+@model MiniMarket.Application.Common.PagedResult<MiniMarket.Application.DTOs.CashRegisterDto>
+@{
+    ViewData["Title"] = "Historial de Caja";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title mb-0">
+        <i class="bi bi-cash-stack me-2"></i>Historial de Caja
+    </h1>
+    <a asp-action="Open" class="btn btn-success">
+        <i class="bi bi-box-arrow-in-right me-1"></i>Abrir Caja
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Apertura</th>
+                    <th>Cierre</th>
+                    <th>Usuario</th>
+                    <th class="text-end">Inicial</th>
+                    <th class="text-end">Esperado</th>
+                    <th class="text-end">Contado</th>
+                    <th class="text-end">Diferencia</th>
+                    <th class="text-center">Estado</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Items.Any())
+                {
+                    @foreach (var register in Model.Items)
+                    {
+                        var diffClass = register.Difference.HasValue
+                            ? (register.Difference.Value == 0 ? "text-success" :
+                               register.Difference.Value > 0 ? "text-info" : "text-danger")
+                            : "";
+                        <tr>
+                            <td>@register.OpenedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                @if (register.ClosedAt.HasValue)
+                                {
+                                    @register.ClosedAt.Value.ToString("dd/MM/yyyy HH:mm")
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                            <td>@register.UserName</td>
+                            <td class="text-end">S/ @register.InitialCash.ToString("N2")</td>
+                            <td class="text-end">S/ @register.ExpectedCash.ToString("N2")</td>
+                            <td class="text-end">
+                                @if (register.FinalCash.HasValue)
+                                {
+                                    <text>S/ @register.FinalCash.Value.ToString("N2")</text>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                            <td class="text-end @diffClass fw-bold">
+                                @if (register.Difference.HasValue)
+                                {
+                                    var sign = register.Difference.Value >= 0 ? "+" : "";
+                                    <text>@sign@register.Difference.Value.ToString("N2")</text>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                @if (register.Status == MiniMarket.Domain.Enums.CashRegisterStatus.Open)
+                                {
+                                    <span class="badge bg-success">Abierta</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Cerrada</span>
+                                }
+                            </td>
+                            <td class="table-actions text-center">
+                                <a asp-action="Details" asp-route-id="@register.Id" class="btn btn-sm btn-outline-info" title="Ver Detalle">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                @if (register.Status == MiniMarket.Domain.Enums.CashRegisterStatus.Open)
+                                {
+                                    <a asp-action="Current" class="btn btn-sm btn-success" title="Ir a Caja">
+                                        <i class="bi bi-box-arrow-in-right"></i>
+                                    </a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="9" class="text-center text-muted py-4">
+                            <i class="bi bi-cash-stack fs-1 d-block mb-2"></i>
+                            No hay registros de caja
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

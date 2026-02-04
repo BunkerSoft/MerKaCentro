@@ -1,0 +1,148 @@
+@model IReadOnlyList<MiniMarket.Application.Services.AlertDto>
+@using MiniMarket.Domain.Enums
+@{
+    ViewData["Title"] = "Alertas";
+    var filterType = ViewBag.FilterType as AlertType?;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title mb-0">
+        <i class="bi bi-bell me-2"></i>Alertas
+        @if (Model.Any())
+        {
+            <span class="badge bg-danger">@Model.Count</span>
+        }
+    </h1>
+    <div>
+        @if (User.IsInRole("Admin"))
+        {
+            <form asp-action="RunChecks" method="post" class="d-inline">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Ejecutar Verificaciones
+                </button>
+            </form>
+        }
+    </div>
+</div>
+
+<!-- Filter Tabs -->
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+        <a class="nav-link @(filterType == null ? "active" : "")" asp-action="Index">
+            Todas
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(filterType == AlertType.LowStock ? "active" : "")" asp-action="ByType" asp-route-type="@AlertType.LowStock">
+            <i class="bi bi-box-seam text-warning"></i> Stock Bajo
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(filterType == AlertType.ExpiringProduct ? "active" : "")" asp-action="ByType" asp-route-type="@AlertType.ExpiringProduct">
+            <i class="bi bi-calendar-x text-danger"></i> Por Vencer
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(filterType == AlertType.CustomerDebt ? "active" : "")" asp-action="ByType" asp-route-type="@AlertType.CustomerDebt">
+            <i class="bi bi-person-exclamation text-info"></i> Deudas
+        </a>
+    </li>
+</ul>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-success">
+        <i class="bi bi-check-circle me-2"></i>
+        No hay alertas activas. Todo esta en orden.
+    </div>
+}
+else
+{
+    <div class="row">
+        @foreach (var alert in Model)
+        {
+            var cardClass = alert.Severity switch
+            {
+                AlertSeverity.Critical => "border-danger",
+                AlertSeverity.Warning => "border-warning",
+                _ => "border-info"
+            };
+            var iconClass = alert.Type switch
+            {
+                AlertType.LowStock => "bi-box-seam",
+                AlertType.ExpiringProduct => "bi-calendar-x",
+                AlertType.CustomerDebt => "bi-person-exclamation",
+                AlertType.PendingPurchaseOrder => "bi-truck",
+                AlertType.CashRegisterOpen => "bi-cash-stack",
+                AlertType.SyncPending => "bi-cloud-arrow-up",
+                _ => "bi-exclamation-triangle"
+            };
+            var severityBadge = alert.Severity switch
+            {
+                AlertSeverity.Critical => "bg-danger",
+                AlertSeverity.Warning => "bg-warning text-dark",
+                _ => "bg-info"
+            };
+
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card h-100 @cardClass">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>
+                            <i class="bi @iconClass me-1"></i>
+                            @alert.Type
+                        </span>
+                        <span class="badge @severityBadge">@alert.Severity</span>
+                    </div>
+                    <div class="card-body">
+                        <h6 class="card-title">@alert.Title</h6>
+                        <p class="card-text text-muted small">@alert.Message</p>
+                        <small class="text-muted">
+                            <i class="bi bi-clock me-1"></i>@alert.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                        </small>
+                        @if (alert.Status == AlertStatus.Acknowledged)
+                        {
+                            <br />
+                            <small class="text-success">
+                                <i class="bi bi-check me-1"></i>Reconocida @alert.AcknowledgedAt?.ToString("dd/MM HH:mm")
+                            </small>
+                        }
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <div class="d-flex gap-2">
+                            @if (alert.EntityType != null && alert.EntityId != null)
+                            {
+                                var controller = alert.EntityType switch
+                                {
+                                    "Product" => "Products",
+                                    "Customer" => "Customers",
+                                    _ => ""
+                                };
+                                if (!string.IsNullOrEmpty(controller))
+                                {
+                                    <a asp-controller="@controller" asp-action="Details" asp-route-id="@alert.EntityId" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i> Ver
+                                    </a>
+                                }
+                            }
+                            @if (alert.Status == AlertStatus.Active)
+                            {
+                                <form asp-action="Acknowledge" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@alert.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-success">
+                                        <i class="bi bi-check"></i> Reconocer
+                                    </button>
+                                </form>
+                            }
+                            <form asp-action="Dismiss" method="post" class="d-inline">
+                                <input type="hidden" name="id" value="@alert.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-x"></i> Descartar
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

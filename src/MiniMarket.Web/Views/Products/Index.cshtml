@@ -1,0 +1,142 @@
+@model MiniMarket.Application.Common.PagedResult<MiniMarket.Application.DTOs.ProductDto>
+@{
+    ViewData["Title"] = "Productos";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title mb-0">
+        <i class="bi bi-box-seam me-2"></i>Productos
+    </h1>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>Nuevo Producto
+    </a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-10">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" name="search" class="form-control" placeholder="Buscar por nombre, codigo o descripcion..."
+                           value="@ViewBag.Search" />
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Buscar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Codigo</th>
+                    <th>Producto</th>
+                    <th>Categoria</th>
+                    <th class="text-end">P. Compra</th>
+                    <th class="text-end">P. Venta</th>
+                    <th class="text-center">Stock</th>
+                    <th class="text-center">Estado</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Items.Any())
+                {
+                    @foreach (var product in Model.Items)
+                    {
+                        var stockClass = product.CurrentStock <= 0 ? "stock-danger" :
+                                         product.CurrentStock <= product.MinStock ? "stock-warning" : "stock-ok";
+                        <tr>
+                            <td>
+                                <code>@product.Code</code>
+                                @if (!string.IsNullOrEmpty(product.Barcode))
+                                {
+                                    <br /><small class="text-muted">@product.Barcode</small>
+                                }
+                            </td>
+                            <td>
+                                <a asp-action="Details" asp-route-id="@product.Id" class="text-decoration-none fw-semibold">
+                                    @product.Name
+                                </a>
+                                @if (!string.IsNullOrEmpty(product.Description))
+                                {
+                                    <br /><small class="text-muted">@product.Description.Substring(0, Math.Min(50, product.Description.Length))...</small>
+                                }
+                            </td>
+                            <td>@product.CategoryName</td>
+                            <td class="text-end price-purchase">S/ @product.PurchasePrice.ToString("N2")</td>
+                            <td class="text-end price">S/ @product.SalePrice.ToString("N2")</td>
+                            <td class="text-center">
+                                <span class="@stockClass fw-bold">@product.CurrentStock.ToString("N2")</span>
+                                <small class="text-muted">@product.Unit</small>
+                            </td>
+                            <td class="text-center">
+                                @if (product.Status == MiniMarket.Domain.Enums.ProductStatus.Active)
+                                {
+                                    <span class="badge bg-success">Activo</span>
+                                }
+                                else if (product.Status == MiniMarket.Domain.Enums.ProductStatus.Inactive)
+                                {
+                                    <span class="badge bg-secondary">Inactivo</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Descontinuado</span>
+                                }
+                            </td>
+                            <td class="table-actions text-center">
+                                <a asp-action="Details" asp-route-id="@product.Id" class="btn btn-sm btn-outline-info" title="Ver">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a asp-action="Edit" asp-route-id="@product.Id" class="btn btn-sm btn-outline-primary" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form asp-action="Delete" asp-route-id="@product.Id" method="post" class="d-inline"
+                                      onsubmit="return confirm('¿Esta seguro de eliminar este producto?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                            No hay productos registrados
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (Model != null && Model.TotalPages > 1)
+    {
+        <div class="card-footer">
+            <nav>
+                <ul class="pagination justify-content-center mb-0">
+                    <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                        <a class="page-link" asp-route-page="@(Model.PageNumber - 1)" asp-route-search="@ViewBag.Search">Anterior</a>
+                    </li>
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                            <a class="page-link" asp-route-page="@i" asp-route-search="@ViewBag.Search">@i</a>
+                        </li>
+                    }
+                    <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+                        <a class="page-link" asp-route-page="@(Model.PageNumber + 1)" asp-route-search="@ViewBag.Search">Siguiente</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    }
+</div>

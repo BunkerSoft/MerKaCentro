@@ -1,0 +1,164 @@
+@model MiniMarket.Application.Common.PagedResult<MiniMarket.Application.DTOs.CustomerDto>
+@{
+    ViewData["Title"] = "Clientes";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title mb-0">
+        <i class="bi bi-people me-2"></i>Clientes
+    </h1>
+    <div>
+        <a asp-action="WithDebt" class="btn btn-outline-warning me-2">
+            <i class="bi bi-exclamation-triangle me-1"></i>Con Deuda
+        </a>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>Nuevo Cliente
+        </a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-10">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" name="search" class="form-control"
+                           placeholder="Buscar por nombre, documento o telefono..."
+                           value="@ViewBag.Search" />
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Buscar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Documento</th>
+                    <th>Telefono</th>
+                    <th class="text-end">Limite Credito</th>
+                    <th class="text-end">Deuda</th>
+                    <th class="text-center">Estado</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Items.Any())
+                {
+                    @foreach (var customer in Model.Items)
+                    {
+                        <tr>
+                            <td>
+                                <a asp-action="Details" asp-route-id="@customer.Id" class="text-decoration-none fw-semibold">
+                                    @customer.Name
+                                </a>
+                                @if (!string.IsNullOrEmpty(customer.Email))
+                                {
+                                    <br /><small class="text-muted">@customer.Email</small>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(customer.DocumentNumber))
+                                {
+                                    <span class="badge bg-secondary">@customer.DocumentType</span>
+                                    @customer.DocumentNumber
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                            <td>@(customer.Phone ?? "-")</td>
+                            <td class="text-end">S/ @customer.CreditLimit.ToString("N2")</td>
+                            <td class="text-end">
+                                @if (customer.CurrentDebt > 0)
+                                {
+                                    <span class="text-danger fw-bold">S/ @customer.CurrentDebt.ToString("N2")</span>
+                                }
+                                else
+                                {
+                                    <span class="text-success">S/ 0.00</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                @if (customer.Status == MiniMarket.Domain.Enums.CustomerStatus.Active)
+                                {
+                                    <span class="badge bg-success">Activo</span>
+                                }
+                                else if (customer.Status == MiniMarket.Domain.Enums.CustomerStatus.Inactive)
+                                {
+                                    <span class="badge bg-secondary">Inactivo</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Bloqueado</span>
+                                }
+                            </td>
+                            <td class="table-actions text-center">
+                                <a asp-action="Details" asp-route-id="@customer.Id" class="btn btn-sm btn-outline-info" title="Ver">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a asp-action="Edit" asp-route-id="@customer.Id" class="btn btn-sm btn-outline-primary" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                @if (customer.Status == MiniMarket.Domain.Enums.CustomerStatus.Active)
+                                {
+                                    <form asp-action="Deactivate" asp-route-id="@customer.Id" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-outline-warning" title="Desactivar">
+                                            <i class="bi bi-pause-circle"></i>
+                                        </button>
+                                    </form>
+                                }
+                                else if (customer.Status == MiniMarket.Domain.Enums.CustomerStatus.Inactive)
+                                {
+                                    <form asp-action="Activate" asp-route-id="@customer.Id" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-outline-success" title="Activar">
+                                            <i class="bi bi-play-circle"></i>
+                                        </button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="bi bi-people fs-1 d-block mb-2"></i>
+                            No hay clientes registrados
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (Model != null && Model.TotalPages > 1)
+    {
+        <div class="card-footer">
+            <nav>
+                <ul class="pagination justify-content-center mb-0">
+                    <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                        <a class="page-link" asp-route-page="@(Model.PageNumber - 1)" asp-route-search="@ViewBag.Search">Anterior</a>
+                    </li>
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                            <a class="page-link" asp-route-page="@i" asp-route-search="@ViewBag.Search">@i</a>
+                        </li>
+                    }
+                    <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+                        <a class="page-link" asp-route-page="@(Model.PageNumber + 1)" asp-route-search="@ViewBag.Search">Siguiente</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    }
+</div>

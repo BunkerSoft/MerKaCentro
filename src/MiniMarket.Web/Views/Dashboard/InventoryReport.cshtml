@@ -1,0 +1,134 @@
+@model MiniMarket.Application.Services.InventoryReportDto
+@{
+    ViewData["Title"] = "Reporte de Inventario";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title mb-0">
+        <i class="bi bi-box-seam me-2"></i>Reporte de Inventario
+    </h1>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Dashboard
+    </a>
+</div>
+
+@if (Model != null)
+{
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h6 class="text-white-50">Total Productos</h6>
+                    <h3 class="mb-0">@Model.TotalProducts</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h6 class="text-white-50">Productos Activos</h6>
+                    <h3 class="mb-0">@Model.ActiveProducts</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body text-center">
+                    <h6>Stock Bajo</h6>
+                    <h3 class="mb-0">@Model.LowStockProducts</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h6 class="text-white-50">Valor Inventario</h6>
+                    <h3 class="mb-0">S/ @Model.TotalInventoryValue.ToString("N2")</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Low Stock Products -->
+        <div class="col-md-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>Productos con Stock Bajo</h5>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.LowStockList.Any())
+                    {
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th class="text-end">Stock Actual</th>
+                                    <th class="text-end">Stock Minimo</th>
+                                    <th class="text-end">Faltante</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var product in Model.LowStockList)
+                                {
+                                    var deficit = product.MinStock - product.CurrentStock;
+                                    <tr>
+                                        <td>
+                                            <a asp-controller="Products" asp-action="Details" asp-route-id="@product.Id"
+                                               class="text-decoration-none">
+                                                @product.Name
+                                            </a>
+                                        </td>
+                                        <td class="text-end text-danger fw-semibold">
+                                            @product.CurrentStock.ToString("N0") @product.Unit
+                                        </td>
+                                        <td class="text-end">@product.MinStock.ToString("N0") @product.Unit</td>
+                                        <td class="text-end text-warning fw-semibold">@deficit.ToString("N0")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4 text-success">
+                            <i class="bi bi-check-circle fs-1 d-block mb-2"></i>
+                            Todos los productos tienen stock suficiente
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventory by Category -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-tags me-2"></i>Inventario por Categoria</h5>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Categoria</th>
+                                <th class="text-end">Productos</th>
+                                <th class="text-end">Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var category in Model.InventoryByCategory)
+                            {
+                                <tr>
+                                    <td>@category.Category</td>
+                                    <td class="text-end">@category.ProductCount</td>
+                                    <td class="text-end fw-semibold">S/ @category.TotalValue.ToString("N2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+}

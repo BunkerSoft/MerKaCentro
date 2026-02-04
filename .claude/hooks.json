@@ -1,0 +1,22 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "description": "Ejecutar linter después de modificar archivos .cs",
+        "matcher": {
+          "tool": ["Edit", "Write"],
+          "pattern": ".*\\.cs$"
+        },
+        "command": "cd /home/satanas/Documentos/minimarket && $HOME/.dotnet/dotnet format --verify-no-changes --include \"$CLAUDE_FILE_PATH\" 2>&1 || echo 'LINTER_WARNING: Formato incorrecto detectado. Ejecute dotnet format para corregir.'",
+        "blocking": false
+      }
+    ],
+    "PreCommit": [
+      {
+        "description": "Análisis estático con Roslyn analyzers antes de commit",
+        "command": "cd /home/satanas/Documentos/minimarket && $HOME/.dotnet/dotnet build --no-restore -warnaserror 2>&1 | head -50",
+        "blocking": true
+      }
+    ]
+  }
+}

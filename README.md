@@ -1,6 +1,6 @@
 # MerkaCentro POS
 
-Sistema de Punto de Venta (POS) completo para minimarket desarrollado con .NET 8 MVC y arquitectura hexagonal.
+Sistema de Punto de Venta (POS) completo para MerkaCentro desarrollado con .NET 8 MVC y arquitectura hexagonal.
 
 ## Tecnologias
 
@@ -41,8 +41,8 @@ MerkaCentro.sln
 ### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/tu-usuario/minimarket.git
-cd minimarket
+git clone https://github.com/tu-usuario/MerkaCentro.git
+cd MerkaCentro
 ```
 
 ### 2. Configurar la base de datos
@@ -54,7 +54,7 @@ cd minimarket
 docker run -e 'ACCEPT_EULA=Y' \
   -e 'MSSQL_SA_PASSWORD=MerkaCentro123!' \
   -p 1433:1433 \
-  --name minimarket-db \
+  --name MerkaCentro-db \
   -d mcr.microsoft.com/mssql/server:2022-latest
 ```
 

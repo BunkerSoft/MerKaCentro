@@ -34,7 +34,6 @@ MerkaCentro.sln
 - [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 - SQL Server (una de las siguientes opciones):
   - SQL Server Express/Developer (Windows)
-  - Docker con SQL Server (Linux/macOS/Windows)
 
 ## Instalacion
 
@@ -46,17 +45,6 @@ cd MerkaCentro
 ```
 
 ### 2. Configurar la base de datos
-
-#### Opcion A: Docker (Recomendado para Linux/macOS)
-
-```bash
-# Iniciar SQL Server en Docker
-docker run -e 'ACCEPT_EULA=Y' \
-  -e 'MSSQL_SA_PASSWORD=MerkaCentro123!' \
-  -p 1433:1433 \
-  --name MerkaCentro-db \
-  -d mcr.microsoft.com/mssql/server:2022-latest
-```
 
 Luego, actualiza la cadena de conexion en `src/MerkaCentro.Web/appsettings.json`:
 
@@ -188,3 +176,6 @@ dotnet ef migrations remove --project src/MerkaCentro.Infrastructure --startup-p
 ## Licencia
 
 Este proyecto esta bajo la Licencia MIT. Ver el archivo `LICENSE` para mas detalles.
+Autor Luis Ernesto Cantin Oviedo
+Desarrollador: Señor
+Fecha:13:022026

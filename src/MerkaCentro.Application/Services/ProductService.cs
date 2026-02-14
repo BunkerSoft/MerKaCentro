@@ -134,19 +134,29 @@ public class ProductService : IProductService
                 description: dto.Description,
                 minStock: minStock);
 
-            if (initialStock.Value > 0)
-            {
-                product.AddStock(initialStock, MovementType.Purchase, null, "Stock inicial");
-            }
+            // NO agregar stock aquí - hacerlo después de SaveChanges
+            // para evitar problemas con EF Core y Owned Entities múltiples
 
             await _productRepository.AddAsync(product);
             await _unitOfWork.SaveChangesAsync();
+
+            // Ahora agregar el stock inicial si existe
+            if (initialStock.Value > 0)
+            {
+                product.AddStock(initialStock, MovementType.Purchase, null, "Stock inicial");
+                _productRepository.Update(product);
+                await _unitOfWork.SaveChangesAsync();
+            }
 
             return Result<ProductDto>.Success(_mapper.Map<ProductDto>(product));
         }
         catch (DomainException ex)
         {
             return Result<ProductDto>.Failure(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return Result<ProductDto>.Failure($"Error al crear producto: {ex.Message}");
         }
     }
 
@@ -183,7 +193,11 @@ public class ProductService : IProductService
                 minStock: minStock,
                 allowFractions: product.AllowFractions);
 
-            product.UpdatePrices(purchasePrice, salePrice);
+            // Solo actualizar precios si son diferentes
+            if (purchasePrice != product.PurchasePrice || salePrice != product.SalePrice)
+            {
+                product.UpdatePrices(purchasePrice, salePrice);
+            }
 
             _productRepository.Update(product);
             await _unitOfWork.SaveChangesAsync();
@@ -193,6 +207,10 @@ public class ProductService : IProductService
         catch (DomainException ex)
         {
             return Result<ProductDto>.Failure(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return Result<ProductDto>.Failure($"Error al actualizar producto: {ex.Message}");
         }
     }
 

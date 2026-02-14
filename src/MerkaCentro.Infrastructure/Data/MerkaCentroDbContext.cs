@@ -11,7 +11,8 @@ public class MerkaCentroDbContext : DbContext
 
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Product> Products => Set<Product>();
-    public DbSet<ProductPriceHistory> ProductPriceHistories => Set<ProductPriceHistory>();
+    // Disabled: ProductPriceHistory disabled due to EF Core Owned Entity tracking issues
+    // public DbSet<ProductPriceHistory> ProductPriceHistories => Set<ProductPriceHistory>();
     public DbSet<StockMovement> StockMovements => Set<StockMovement>();
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<CreditPayment> CreditPayments => Set<CreditPayment>();
@@ -37,6 +38,9 @@ public class MerkaCentroDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // Ignore ProductPriceHistory FIRST - disabled due to EF Core Owned Entity tracking issues
+        modelBuilder.Ignore<ProductPriceHistory>();
+        
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(MerkaCentroDbContext).Assembly);
     }

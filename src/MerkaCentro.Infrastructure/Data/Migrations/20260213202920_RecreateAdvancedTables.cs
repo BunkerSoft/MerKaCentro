@@ -6,11 +6,33 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace MerkaCentro.Infrastructure.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class AddAdvancedAndPolishTables : Migration
+    public partial class RecreateAdvancedTables : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AlterColumn<string>(
+                name: "SaleCurrency",
+                table: "ProductPriceHistories",
+                type: "nvarchar(3)",
+                maxLength: 3,
+                nullable: false,
+                defaultValue: "PEN",
+                oldClrType: typeof(string),
+                oldType: "nvarchar(3)",
+                oldMaxLength: 3);
+
+            migrationBuilder.AlterColumn<string>(
+                name: "PurchaseCurrency",
+                table: "ProductPriceHistories",
+                type: "nvarchar(3)",
+                maxLength: 3,
+                nullable: false,
+                defaultValue: "PEN",
+                oldClrType: typeof(string),
+                oldType: "nvarchar(3)",
+                oldMaxLength: 3);
+
             migrationBuilder.CreateTable(
                 name: "Alerts",
                 columns: table => new
@@ -198,6 +220,28 @@ namespace MerkaCentro.Infrastructure.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "SyncQueue");
+
+            migrationBuilder.AlterColumn<string>(
+                name: "SaleCurrency",
+                table: "ProductPriceHistories",
+                type: "nvarchar(3)",
+                maxLength: 3,
+                nullable: false,
+                oldClrType: typeof(string),
+                oldType: "nvarchar(3)",
+                oldMaxLength: 3,
+                oldDefaultValue: "PEN");
+
+            migrationBuilder.AlterColumn<string>(
+                name: "PurchaseCurrency",
+                table: "ProductPriceHistories",
+                type: "nvarchar(3)",
+                maxLength: 3,
+                nullable: false,
+                oldClrType: typeof(string),
+                oldType: "nvarchar(3)",
+                oldMaxLength: 3,
+                oldDefaultValue: "PEN");
         }
     }
 }

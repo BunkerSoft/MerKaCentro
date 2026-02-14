@@ -14,10 +14,11 @@ public class ProductRepository : RepositoryBase<Product, Guid>, IProductReposito
 
     public override async Task<Product?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
+        // Disabled: PriceHistory disabled due to EF Core Owned Entity tracking issues
         return await DbSet
             .Include(p => p.Category)
             .Include(p => p.StockMovements.OrderByDescending(m => m.CreatedAt).Take(10))
-            .Include(p => p.PriceHistory.OrderByDescending(h => h.EffectiveDate).Take(10))
+            // .Include(p => p.PriceHistory.OrderByDescending(h => h.EffectiveDate).Take(10))
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
     }
 

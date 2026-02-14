@@ -8,6 +8,13 @@ public sealed class Money : ValueObject
     public decimal Amount { get; }
     public string Currency { get; }
 
+    // EF Core necesita un constructor parameterless
+    #pragma warning disable CS8618
+    protected Money()
+    {
+    }
+    #pragma warning restore CS8618
+
     private Money(decimal amount, string currency)
     {
         Amount = amount;

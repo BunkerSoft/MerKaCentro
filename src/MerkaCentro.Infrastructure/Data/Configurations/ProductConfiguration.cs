@@ -35,22 +35,26 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         {
             price.Property(m => m.Amount)
                 .HasColumnName("PurchasePrice")
-                .HasPrecision(18, 2);
+                .HasPrecision(18, 2)
+                .IsRequired();
             price.Property(m => m.Currency)
                 .HasColumnName("PurchaseCurrency")
                 .HasMaxLength(3)
-                .HasDefaultValue("PEN");
+                .HasDefaultValue("PEN")
+                .IsRequired();
         });
 
         builder.OwnsOne(p => p.SalePrice, price =>
         {
             price.Property(m => m.Amount)
                 .HasColumnName("SalePrice")
-                .HasPrecision(18, 2);
+                .HasPrecision(18, 2)
+                .IsRequired();
             price.Property(m => m.Currency)
                 .HasColumnName("SaleCurrency")
                 .HasMaxLength(3)
-                .HasDefaultValue("PEN");
+                .HasDefaultValue("PEN")
+                .IsRequired();
         });
 
         builder.OwnsOne(p => p.MinStock, qty =>
@@ -74,10 +78,11 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.HasIndex(p => p.Code)
             .IsUnique();
 
-        builder.HasMany(p => p.PriceHistory)
-            .WithOne()
-            .HasForeignKey(h => h.ProductId)
-            .OnDelete(DeleteBehavior.Cascade);
+        // Disabled: ProductPriceHistory causes EF Core Owned Entity tracking conflicts
+        // builder.HasMany(p => p.PriceHistory)
+        //     .WithOne()
+        //     .HasForeignKey(h => h.ProductId)
+        //     .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasMany(p => p.StockMovements)
             .WithOne()
@@ -86,37 +91,40 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
     }
 }
 
-public class ProductPriceHistoryConfiguration : IEntityTypeConfiguration<ProductPriceHistory>
-{
-    public void Configure(EntityTypeBuilder<ProductPriceHistory> builder)
-    {
-        builder.ToTable("ProductPriceHistories");
-
-        builder.HasKey(h => h.Id);
-
-        builder.OwnsOne(h => h.PurchasePrice, price =>
-        {
-            price.Property(m => m.Amount)
-                .HasColumnName("PurchasePrice")
-                .HasPrecision(18, 2);
-            price.Property(m => m.Currency)
-                .HasColumnName("PurchaseCurrency")
-                .HasMaxLength(3);
-        });
-
-        builder.OwnsOne(h => h.SalePrice, price =>
-        {
-            price.Property(m => m.Amount)
-                .HasColumnName("SalePrice")
-                .HasPrecision(18, 2);
-            price.Property(m => m.Currency)
-                .HasColumnName("SaleCurrency")
-                .HasMaxLength(3);
-        });
-
-        builder.HasIndex(h => new { h.ProductId, h.EffectiveDate });
-    }
-}
+// Disabled: ProductPriceHistory causes EF Core Owned Entity tracking conflicts
+// public class ProductPriceHistoryConfiguration : IEntityTypeConfiguration<ProductPriceHistory>
+// {
+//     public void Configure(EntityTypeBuilder<ProductPriceHistory> builder)
+//     {
+//         builder.ToTable("ProductPriceHistories");
+//
+//         builder.HasKey(h => h.Id);
+//
+//         builder.OwnsOne(h => h.PurchasePrice, price =>
+//         {
+//             price.Property(m => m.Amount)
+//                 .HasColumnName("PurchasePrice")
+//                 .HasPrecision(18, 2);
+//             price.Property(m => m.Currency)
+//                 .HasColumnName("PurchaseCurrency")
+//                 .HasMaxLength(3)
+//                 .HasDefaultValue("PEN");
+//         });
+//
+//         builder.OwnsOne(h => h.SalePrice, price =>
+//         {
+//             price.Property(m => m.Amount)
+//                 .HasColumnName("SalePrice")
+//                 .HasPrecision(18, 2);
+//             price.Property(m => m.Currency)
+//                 .HasColumnName("SaleCurrency")
+//                 .HasMaxLength(3)
+//                 .HasDefaultValue("PEN");
+//         });
+//
+//         builder.HasIndex(h => new { h.ProductId, h.EffectiveDate });
+//     }
+// }
 
 public class StockMovementConfiguration : IEntityTypeConfiguration<StockMovement>
 {

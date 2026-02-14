@@ -21,14 +21,16 @@ public class Product : AggregateRoot<Guid>
     public bool AllowFractions { get; private set; }
     public ProductStatus Status { get; private set; }
 
-    private readonly List<ProductPriceHistory> _priceHistory = [];
-    public IReadOnlyCollection<ProductPriceHistory> PriceHistory => _priceHistory.AsReadOnly();
+    // Disabled: ProductPriceHistory causes EF Core Owned Entity tracking conflicts with Money
+    // private readonly List<ProductPriceHistory> _priceHistory = [];
+    // public IReadOnlyCollection<ProductPriceHistory> PriceHistory => _priceHistory.AsReadOnly();
 
     private readonly List<StockMovement> _stockMovements = [];
     public IReadOnlyCollection<StockMovement> StockMovements => _stockMovements.AsReadOnly();
 
-    private Product() : base()
+    protected Product() : base()
     {
+        // EF Core parameterless constructor
     }
 
     public static Product Create(
@@ -63,7 +65,8 @@ public class Product : AggregateRoot<Guid>
             Status = ProductStatus.Active
         };
 
-        product.AddPriceHistory(purchasePrice, salePrice);
+        // Disabled: ProductPriceHistory causes EF Core Owned Entity tracking conflicts
+        // product.AddPriceHistory(purchasePrice, salePrice);
 
         return product;
     }
@@ -96,15 +99,14 @@ public class Product : AggregateRoot<Guid>
     {
         ValidatePrices(purchasePrice, salePrice);
 
-        bool pricesChanged = PurchasePrice != purchasePrice || SalePrice != salePrice;
-
         PurchasePrice = purchasePrice;
         SalePrice = salePrice;
 
-        if (pricesChanged)
-        {
-            AddPriceHistory(purchasePrice, salePrice);
-        }
+        // Disabled: ProductPriceHistory causes EF Core Owned Entity tracking conflicts
+        // if (pricesChanged)
+        // {
+        //     AddPriceHistory(purchasePrice, salePrice);
+        // }
 
         SetUpdated();
     }
@@ -205,11 +207,12 @@ public class Product : AggregateRoot<Guid>
         return Percentage.Create(Math.Max(0, Math.Min(100, margin)));
     }
 
-    private void AddPriceHistory(Money purchasePrice, Money salePrice)
-    {
-        var history = ProductPriceHistory.Create(Id, purchasePrice, salePrice);
-        _priceHistory.Add(history);
-    }
+    // Disabled: ProductPriceHistory causes EF Core Owned Entity tracking conflicts
+    // private void AddPriceHistory(Money purchasePrice, Money salePrice)
+    // {
+    //     var history = ProductPriceHistory.Create(Id, purchasePrice, salePrice);
+    //     _priceHistory.Add(history);
+    // }
 
     private static void ValidateBasicFields(string code, string name)
     {

@@ -178,4 +178,4 @@ dotnet ef migrations remove --project src/MerkaCentro.Infrastructure --startup-p
 Este proyecto esta bajo la Licencia MIT. Ver el archivo `LICENSE` para mas detalles.
 Autor Luis Ernesto Cantin Oviedo
 Desarrollador: Señor
-Fecha:13:022026
+Fecha:13/02/2026

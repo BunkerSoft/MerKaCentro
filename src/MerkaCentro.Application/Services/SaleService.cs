@@ -150,8 +150,8 @@ public class SaleService : ISaleService
 
                 sale.AddItem(product, quantity, unitPrice, discount);
 
-                product.RemoveStock(quantity, MovementType.Sale, sale.Number, null);
-                _productRepository.Update(product);
+                // No modificar el producto aquí - hacerlo después de guardar la venta
+                // para evitar problemas de EF Core con Owned Entities múltiples
             }
 
             foreach (var paymentDto in dto.Payments)
@@ -183,6 +183,22 @@ public class SaleService : ISaleService
 
             await _saleRepository.AddAsync(sale);
             await _unitOfWork.SaveChangesAsync();
+
+            // Actualizar stock DESPUÉS de SaveChanges para evitar problemas de EF Core
+            // con Owned Entities múltiples
+            foreach (var itemDto in dto.Items)
+            {
+                var product = await _productRepository.GetByIdAsync(itemDto.ProductId);
+                if (product != null)
+                {
+                    var quantity = Quantity.Create(itemDto.Quantity);
+                    product.RemoveStock(quantity, MovementType.Sale, sale.Number, null);
+                    _productRepository.Update(product);
+                }
+            }
+
+            if (dto.Items.Any())
+                await _unitOfWork.SaveChangesAsync();
 
             return Result<SaleDto>.Success(_mapper.Map<SaleDto>(sale));
         }

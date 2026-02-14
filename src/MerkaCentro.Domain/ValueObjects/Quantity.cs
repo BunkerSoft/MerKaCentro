@@ -7,6 +7,8 @@ public sealed class Quantity : ValueObject
 {
     public decimal Value { get; }
 
+    private Quantity() { }
+
     private Quantity(decimal value)
     {
         Value = value;

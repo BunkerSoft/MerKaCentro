@@ -8,6 +8,8 @@ public sealed partial class Barcode : ValueObject
 {
     public string Value { get; }
 
+    private Barcode() { }
+
     private Barcode(string value)
     {
         Value = value;

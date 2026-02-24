@@ -87,6 +87,11 @@ Al ejecutar por primera vez, se crea un usuario administrador:
 - **Usuario:** `admin`
 - **Contrasena:** `Admin123!`
 
+- **Usuario:** `admin1` 
+- **Contrasena:** `Admin123!`
+
+- ** `fD2KeGexi0ixy8Tzx8rmfbk7V9j20BWeCAPjHSPa3sbG0hIZ0nfiKwEa1sSSsJnd es Admin123!`
+
 ## Funcionalidades
 
 ### Modulos Core

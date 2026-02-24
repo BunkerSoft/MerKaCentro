@@ -35,18 +35,37 @@ public static class DataSeeder
 
     private static async Task SeedUsersAsync(MerkaCentroDbContext context, ILogger logger)
     {
-        if (await context.Users.AnyAsync())
-            return;
-
-        var users = new[]
+        // If there are no users, create default admin and cashier.
+        if (!await context.Users.AnyAsync())
         {
-            User.Create("admin", HashPassword("Admin123!"), "Administrador del Sistema", UserRole.Admin),
-            User.Create("cajero", HashPassword("Cajero123!"), "Cajero Principal", UserRole.Cashier),
-        };
+            var users = new[]
+            {
+                User.Create("admin", HashPassword("Admin123!"), "Administrador del Sistema", UserRole.Admin),
+                User.Create("cajero", HashPassword("Cajero123!"), "Cajero Principal", UserRole.Cashier),
+            };
 
-        context.Users.AddRange(users);
-        await context.SaveChangesAsync();
-        logger.LogInformation("Usuarios creados: admin, cajero");
+            context.Users.AddRange(users);
+            await context.SaveChangesAsync();
+            logger.LogInformation("Usuarios creados: admin, cajero");
+            return;
+        }
+
+        // Ensure admin exists and has a known password (useful for local development).
+        var admin = await context.Users.FirstOrDefaultAsync(u => u.Username == "admin");
+        if (admin != null)
+        {
+            try
+            {
+                admin.UpdatePassword(HashPassword("Admin123!"));
+                admin.Activate();
+                await context.SaveChangesAsync();
+                logger.LogInformation("Usuario 'admin' restablecido y activado para desarrollo");
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "No se pudo restablecer la contraseña del admin");
+            }
+        }
     }
 
     private static async Task SeedCategoriesAsync(MerkaCentroDbContext context, ILogger logger)

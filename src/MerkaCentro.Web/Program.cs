@@ -48,7 +48,10 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Dashboard}/{action=Index}/{id?}");
 
-// Seeding products using raw SQL - temporarily disabled for debugging
-// await DataSeeder.SeedAsync(app.Services);
+// Run development-only data seeding (creates/reset admin password)
+if (app.Environment.IsDevelopment())
+{
+    await DataSeeder.SeedAsync(app.Services);
+}
 
 app.Run();

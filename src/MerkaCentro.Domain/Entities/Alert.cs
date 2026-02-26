@@ -44,7 +44,9 @@ public class Alert : AggregateRoot<Guid>
     public void Acknowledge(Guid userId)
     {
         if (Status != AlertStatus.Active)
+        {
             return;
+        }
 
         Status = AlertStatus.Acknowledged;
         AcknowledgedAt = DateTime.UtcNow;
@@ -55,7 +57,9 @@ public class Alert : AggregateRoot<Guid>
     public void Resolve()
     {
         if (Status == AlertStatus.Resolved || Status == AlertStatus.Dismissed)
+        {
             return;
+        }
 
         Status = AlertStatus.Resolved;
         ResolvedAt = DateTime.UtcNow;
@@ -65,7 +69,9 @@ public class Alert : AggregateRoot<Guid>
     public void Dismiss(Guid userId)
     {
         if (Status == AlertStatus.Resolved || Status == AlertStatus.Dismissed)
+        {
             return;
+        }
 
         Status = AlertStatus.Dismissed;
         AcknowledgedAt = DateTime.UtcNow;

@@ -6,7 +6,7 @@ namespace MerkaCentro.Domain.ValueObjects;
 
 public sealed partial class Barcode : ValueObject
 {
-    public string Value { get; }
+    public string? Value { get; }
 
     private Barcode() { }
 
@@ -47,7 +47,7 @@ public sealed partial class Barcode : ValueObject
         yield return Value;
     }
 
-    public override string ToString() => Value;
+    public override string ToString() => Value ?? string.Empty;
 
     [GeneratedRegex(@"^\d{8,14}$")]
     private static partial Regex BarcodeRegex();

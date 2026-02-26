@@ -1,10 +1,12 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using MerkaCentro.Application.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MerkaCentro.Web.Controllers;
 
-public class CashRegisterController : Controller
+[Authorize]
+public class CashRegisterController : AuthenticatedController
 {
     private readonly ICashRegisterService _cashRegisterService;
 
@@ -43,7 +45,7 @@ public class CashRegisterController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Open(decimal initialCash)
     {
-        // TODO: Get actual user ID from authentication
+            // user ID comes from authenticated claim; Authorize ensures user is logged in
         var userId = GetCurrentUserId();
 
         var dto = new OpenCashRegisterDto(userId, initialCash);
@@ -93,7 +95,7 @@ public class CashRegisterController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Withdrawal(Guid id, decimal amount, string description)
     {
-        var dto = new RegisterMovementDto(amount, "PEN", description);
+        var dto = new RegisterMovementDto(amount, "COP", description);
         var result = await _cashRegisterService.RegisterWithdrawalAsync(id, dto);
 
         if (!result.IsSuccess)
@@ -112,7 +114,7 @@ public class CashRegisterController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Deposit(Guid id, decimal amount, string description)
     {
-        var dto = new RegisterMovementDto(amount, "PEN", description);
+        var dto = new RegisterMovementDto(amount, "COP", description);
         var result = await _cashRegisterService.RegisterDepositAsync(id, dto);
 
         if (!result.IsSuccess)
@@ -138,9 +140,5 @@ public class CashRegisterController : Controller
         return View(result.Value);
     }
 
-    private Guid GetCurrentUserId()
-    {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return Guid.Parse(userIdClaim!);
-    }
+    // the logic moved to AuthenticatedController base class; keep method for compatibility if needed
 }

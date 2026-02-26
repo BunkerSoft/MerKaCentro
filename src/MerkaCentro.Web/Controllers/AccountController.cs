@@ -7,7 +7,8 @@ using MerkaCentro.Application.Services;
 
 namespace MerkaCentro.Web.Controllers;
 
-public class AccountController : Controller
+[Authorize]
+public class AccountController : AuthenticatedController
 {
     private readonly IAuthService _authService;
 
@@ -100,7 +101,7 @@ public class AccountController : Controller
             return View(model);
         }
 
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var userId = GetCurrentUserId();
         var result = await _authService.ChangePasswordAsync(userId, model.CurrentPassword, model.NewPassword);
 
         if (!result.IsSuccess)

@@ -133,7 +133,7 @@ public class CashRegisterTests
         var register = CreateOpenRegister();
         register.RegisterSale(Money.Create(100m), "V-001");
 
-        register.Close(Money.Create(195m), "Faltante de 5 soles");
+        register.Close(Money.Create(195m), "Faltante de 5 pesos");
 
         register.Status.Should().Be(CashRegisterStatus.Closed);
         register.FinalCash!.Amount.Should().Be(195m);

@@ -123,7 +123,7 @@ public class CashRegisterService : ICashRegisterService
         }
     }
 
-    public async Task<Result<CashRegisterDto>> RegisterSaleAsync(Guid id, decimal amount, string currency = "PEN")
+    public async Task<Result<CashRegisterDto>> RegisterSaleAsync(Guid id, decimal amount, string currency = "COP")
     {
         var cashRegister = await _cashRegisterRepository.GetWithMovementsAsync(id);
         if (cashRegister == null)

@@ -75,6 +75,11 @@ public class Sale : AggregateRoot<Guid>
             throw new DomainException("No se pueden agregar items a una venta que no está pendiente");
         }
 
+        if (product is null)
+        {
+            throw new ArgumentNullException(nameof(product));
+        }
+
         if (quantity <= Quantity.Zero())
         {
             throw new DomainException("La cantidad debe ser mayor a cero");

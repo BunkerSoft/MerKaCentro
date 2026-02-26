@@ -7,7 +7,7 @@ using MerkaCentro.Domain.Enums;
 namespace MerkaCentro.Web.Controllers;
 
 [Authorize]
-public class AlertsController : Controller
+public class AlertsController : AuthenticatedController
 {
     private readonly IAlertService _alertService;
 
@@ -45,7 +45,7 @@ public class AlertsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Acknowledge(Guid id)
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var userId = GetCurrentUserId();
         var result = await _alertService.AcknowledgeAsync(id, userId);
 
         if (!result.IsSuccess)
@@ -64,7 +64,7 @@ public class AlertsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Dismiss(Guid id)
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var userId = GetCurrentUserId();
         var result = await _alertService.DismissAsync(id, userId);
 
         if (!result.IsSuccess)

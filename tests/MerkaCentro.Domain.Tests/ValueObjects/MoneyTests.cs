@@ -9,10 +9,10 @@ public class MoneyTests
     [Fact]
     public void Create_WithValidAmount_ShouldCreateMoney()
     {
-        var money = Money.Create(100.50m, "PEN");
+        var money = Money.Create(100.50m, "COP");
 
         money.Amount.Should().Be(100.50m);
-        money.Currency.Should().Be("PEN");
+        money.Currency.Should().Be("COP");
     }
 
     [Fact]
@@ -55,13 +55,13 @@ public class MoneyTests
     [Fact]
     public void Add_WithDifferentCurrency_ShouldThrowDomainException()
     {
-        var money1 = Money.Create(100m, "PEN");
+        var money1 = Money.Create(100m, "COP");
         var money2 = Money.Create(50m, "USD");
 
         var act = () => money1.Add(money2);
 
         act.Should().Throw<DomainException>()
-            .WithMessage("No se pueden operar monedas diferentes: PEN y USD");
+            .WithMessage("No se pueden operar monedas diferentes: COP y USD");
     }
 
     [Fact]
@@ -125,7 +125,7 @@ public class MoneyTests
         var money = Money.Zero();
 
         money.Amount.Should().Be(0);
-        money.Currency.Should().Be("PEN");
+        money.Currency.Should().Be("COP");
     }
 
     [Fact]
@@ -146,8 +146,8 @@ public class MoneyTests
     [Fact]
     public void Equals_WithSameValues_ShouldReturnTrue()
     {
-        var money1 = Money.Create(100m, "PEN");
-        var money2 = Money.Create(100m, "PEN");
+        var money1 = Money.Create(100m, "COP");
+        var money2 = Money.Create(100m, "COP");
 
         money1.Should().Be(money2);
     }
@@ -155,8 +155,8 @@ public class MoneyTests
     [Fact]
     public void Equals_WithDifferentValues_ShouldReturnFalse()
     {
-        var money1 = Money.Create(100m, "PEN");
-        var money2 = Money.Create(200m, "PEN");
+        var money1 = Money.Create(100m, "COP");
+        var money2 = Money.Create(200m, "COP");
 
         money1.Should().NotBe(money2);
     }
@@ -164,8 +164,8 @@ public class MoneyTests
     [Fact]
     public void ToString_ShouldReturnFormattedString()
     {
-        var money = Money.Create(1234.56m, "PEN");
+        var money = Money.Create(1234.56m, "COP");
 
-        money.ToString().Should().Contain("PEN").And.Contain("1");
+        money.ToString().Should().Contain("COP").And.Contain("1");
     }
 }

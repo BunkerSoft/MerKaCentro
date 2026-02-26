@@ -10,7 +10,7 @@ public sealed class Money : ValueObject
 
     // EF Core necesita un constructor parameterless
     #pragma warning disable CS8618
-    protected Money()
+    private Money()
     {
     }
     #pragma warning restore CS8618
@@ -21,7 +21,7 @@ public sealed class Money : ValueObject
         Currency = currency;
     }
 
-    public static Money Create(decimal amount, string currency = "PEN")
+    public static Money Create(decimal amount, string currency = "COP")
     {
         if (amount < 0)
         {
@@ -36,9 +36,9 @@ public sealed class Money : ValueObject
         return new Money(Math.Round(amount, 2), currency.ToUpperInvariant());
     }
 
-    public static Money Zero(string currency = "PEN") => new(0, currency);
+    public static Money Zero(string currency = "COP") => new(0, currency);
 
-    internal static Money CreateWithSign(decimal amount, string currency = "PEN")
+    internal static Money CreateWithSign(decimal amount, string currency = "COP")
     {
         if (string.IsNullOrWhiteSpace(currency))
         {

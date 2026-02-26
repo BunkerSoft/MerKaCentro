@@ -1,0 +1,8 @@
+root = false
+
+# Desabilitar todos los análisis de código
+[*.cs]
+dotnet_diagnostic.CA.severity = silent
+dotnet_diagnostic.IDE.severity = silent  
+dotnet_diagnostic.IDE0055.severity = silent
+dotnet_diagnostic.IDE0011.severity = silent

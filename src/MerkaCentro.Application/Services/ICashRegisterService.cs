@@ -13,7 +13,7 @@ public interface ICashRegisterService
     Task<Result<IEnumerable<CashRegisterDto>>> GetByDateRangeAsync(DateTime from, DateTime to);
     Task<Result<CashRegisterDto>> OpenAsync(OpenCashRegisterDto dto);
     Task<Result<CashRegisterDto>> CloseAsync(Guid id, decimal countedCash);
-    Task<Result<CashRegisterDto>> RegisterSaleAsync(Guid id, decimal amount, string currency = "PEN");
+    Task<Result<CashRegisterDto>> RegisterSaleAsync(Guid id, decimal amount, string currency = "COP");
     Task<Result<CashRegisterDto>> RegisterWithdrawalAsync(Guid id, RegisterMovementDto dto);
     Task<Result<CashRegisterDto>> RegisterDepositAsync(Guid id, RegisterMovementDto dto);
     Task<Result<CashRegisterDto>> RegisterExpenseAsync(Guid id, RegisterExpenseDto dto);
@@ -23,7 +23,7 @@ public interface ICashRegisterService
 public record OpenCashRegisterDto(
     Guid UserId,
     decimal InitialCash,
-    string Currency = "PEN");
+    string Currency = "COP");
 
 public record RegisterMovementDto(
     decimal Amount,

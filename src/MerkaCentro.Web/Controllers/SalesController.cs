@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using MerkaCentro.Application.DTOs;
 using MerkaCentro.Application.Services;
 using MerkaCentro.Domain.Enums;
 
 namespace MerkaCentro.Web.Controllers;
 
-public class SalesController : Controller
+[Authorize]
+public class SalesController : AuthenticatedController
 {
     private readonly ISaleService _saleService;
     private readonly IProductService _productService;
@@ -209,11 +211,6 @@ public class SalesController : Controller
         return View(result.Value);
     }
 
-    // TODO: Replace with actual authentication
-    private Guid GetCurrentUserId()
-    {
-        return Guid.Parse("00000000-0000-0000-0000-000000000001");
-    }
 }
 
 public class CreateSaleRequest

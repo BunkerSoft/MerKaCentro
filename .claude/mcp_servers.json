@@ -1,0 +1,6 @@
+{
+  "context7": {
+    "command": "npx",
+    "args": ["-y", "@anthropics/context7-mcp"]
+  }
+}

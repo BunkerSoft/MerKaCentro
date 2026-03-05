@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tree:*)",
+      "Bash(dir:*)",
+      "Bash(dotnet run:*)",
+      "Bash(set ASPNETCORE_ENVIRONMENT=Development:*)",
+      "Bash(curl:*)",
+      "Bash(dotnet ef migrations add:*)",
+      "Bash(dotnet ef database update:*)",
+      "Bash(findstr:*)",
+      "Bash(ls:*)",
+      "Bash(git mv:*)",
+      "Bash(powershell -Command \"Rename-Item -Path ''src\\\\MiniMarket.Domain'' -NewName ''MerKaCentro.Domain'' -Force\")",
+      "Bash(cmd.exe /c \"rename MiniMarket.Domain MerKaCentro.Domain\")",
+      "Bash(find:*)",
+      "Bash(cmd.exe /c \"cd /d C:\\\\Users\\\\Ingen\\\\OneDrive\\\\Documentos\\\\GitHub\\\\minimarket\\\\src && ren MiniMarket.Domain MerKaCentro.Domain && ren MiniMarket.Application MerKaCentro.Application && ren MiniMarket.Infrastructure MerKaCentro.Infrastructure && ren MiniMarket.Web MerKaCentro.Web\")",
+      "Bash(dotnet build:*)",
+      "Bash(cmd.exe /c \"cd /d C:\\\\Users\\\\Ingen\\\\OneDrive\\\\Documentos\\\\GitHub\\\\minimarket\\\\src && ren MerKaCentro.Web _tmp_Web && ren _tmp_Web MerkaCentro.Web\")",
+      "Bash(cmd.exe /c \"cd /d C:\\\\Users\\\\Ingen\\\\OneDrive\\\\Documentos\\\\GitHub\\\\minimarket\\\\src && ren MerKaCentro.Web TEMP_WEB_DIR\")",
+      "Bash(dotnet restore:*)",
+      "Bash(ASPNETCORE_ENVIRONMENT=Development dotnet run:*)",
+      "Bash(dotnet tool restore:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ]
+  }
+}

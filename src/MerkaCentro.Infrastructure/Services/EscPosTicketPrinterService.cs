@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using MerkaCentro.Application.Common;
 using MerkaCentro.Application.DTOs;
 using MerkaCentro.Application.Services;
+using SkiaSharp;
 
 namespace MerkaCentro.Infrastructure.Services;
 
@@ -14,6 +15,7 @@ public class EscPosTicketPrinterService : ITicketPrinterService
     private readonly string _businessNit;
     private readonly string _businessAddress;
     private readonly string _businessPhone;
+    private readonly byte[]? _logoEscPosData;
     private readonly ILogger<EscPosTicketPrinterService> _logger;
     private static readonly Encoding _encoding;
 
@@ -54,6 +56,13 @@ public class EscPosTicketPrinterService : ITicketPrinterService
         _businessAddress = configuration["PrinterSettings:BusinessAddress"] ?? "";
         _businessPhone = configuration["PrinterSettings:BusinessPhone"] ?? "";
         _logger = logger;
+
+        var logoPath = configuration["PrinterSettings:LogoPath"];
+        if (!string.IsNullOrWhiteSpace(logoPath) && File.Exists(logoPath))
+        {
+            try { _logoEscPosData = ConvertImageToEscPos(logoPath); }
+            catch (Exception ex) { _logger.LogWarning(ex, "No se pudo cargar el logo para ticket"); }
+        }
     }
 
     public Task<Result> PrintSaleTicketAsync(SaleDto sale)
@@ -66,6 +75,14 @@ public class EscPosTicketPrinterService : ITicketPrinterService
 
             // Header
             Write(ms, ESC_ALIGN_CENTER);
+
+            // Logo
+            if (_logoEscPosData != null)
+            {
+                Write(ms, _logoEscPosData);
+                WriteText(ms, "");
+            }
+
             Write(ms, ESC_DOUBLE_HEIGHT);
             WriteText(ms, _businessName);
             Write(ms, ESC_NORMAL_SIZE);
@@ -118,6 +135,11 @@ public class EscPosTicketPrinterService : ITicketPrinterService
             // Footer
             WriteText(ms, new string('=', LINE_WIDTH));
             Write(ms, ESC_ALIGN_CENTER);
+
+            // QR Code (ESC/POS native commands)
+            var qrContent = $"{_businessName}|NIT:{_businessNit}|{sale.Number}|{sale.CreatedAt:yyyy-MM-dd HH:mm}|Total:${sale.Total:N0}";
+            WriteQrCode(ms, qrContent);
+
             WriteText(ms, "Gracias por su compra!");
             WriteText(ms, "");
 
@@ -267,6 +289,96 @@ public class EscPosTicketPrinterService : ITicketPrinterService
     {
         var bytes = _encoding.GetBytes(text + "\n");
         ms.Write(bytes, 0, bytes.Length);
+    }
+
+    /// <summary>
+    /// Imprime un QR code usando comandos nativos ESC/POS (GS ( k).
+    /// Compatible con la mayoria de impresoras termicas modernas.
+    /// </summary>
+    private static void WriteQrCode(MemoryStream ms, string content)
+    {
+        var data = _encoding.GetBytes(content);
+        int len = data.Length + 3;
+        int pL = len % 256;
+        int pH = len / 256;
+
+        // GS ( k - QR Code: Select model (Model 2)
+        Write(ms, [0x1D, 0x28, 0x6B, 0x04, 0x00, 0x31, 0x41, 0x32, 0x00]);
+
+        // GS ( k - QR Code: Set module size (4 dots)
+        Write(ms, [0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, 0x04]);
+
+        // GS ( k - QR Code: Set error correction level (M = 49)
+        Write(ms, [0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x45, 0x31]);
+
+        // GS ( k - QR Code: Store data
+        Write(ms, [0x1D, 0x28, 0x6B, (byte)pL, (byte)pH, 0x31, 0x50, 0x30]);
+        Write(ms, data);
+
+        // GS ( k - QR Code: Print
+        Write(ms, [0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x51, 0x30]);
+
+        WriteText(ms, ""); // line feed after QR
+    }
+
+    /// <summary>
+    /// Convierte una imagen (JPEG/PNG) a formato ESC/POS raster bitmap
+    /// usando comandos GS v 0 (raster bit image).
+    /// Escala la imagen a un ancho maximo de 384 px (impresora 80mm).
+    /// </summary>
+    private static byte[] ConvertImageToEscPos(string imagePath)
+    {
+        using var bitmap = SKBitmap.Decode(imagePath);
+        if (bitmap == null) return [];
+
+        // Escalar al ancho del ticket (max 384 px para impresora 80mm)
+        const int maxWidth = 384;
+        int newWidth = Math.Min(bitmap.Width, maxWidth);
+        int newHeight = (int)((double)bitmap.Height / bitmap.Width * newWidth);
+
+        using var scaled = bitmap.Resize(new SKImageInfo(newWidth, newHeight), SKFilterQuality.Medium);
+        if (scaled == null) return [];
+
+        // El ancho en bytes debe ser multiplo de 8
+        int widthBytes = (scaled.Width + 7) / 8;
+        int height = scaled.Height;
+
+        using var ms = new MemoryStream();
+
+        // GS v 0 - Print raster bit image
+        // m=0 (normal), xL/xH = width bytes, yL/yH = height
+        ms.WriteByte(0x1D); // GS
+        ms.WriteByte(0x76); // v
+        ms.WriteByte(0x30); // 0
+        ms.WriteByte(0x00); // m = normal
+        ms.WriteByte((byte)(widthBytes % 256));   // xL
+        ms.WriteByte((byte)(widthBytes / 256));    // xH
+        ms.WriteByte((byte)(height % 256));        // yL
+        ms.WriteByte((byte)(height / 256));         // yH
+
+        // Pixel data: 1 bit = black, 0 = white
+        for (int y = 0; y < height; y++)
+        {
+            for (int byteX = 0; byteX < widthBytes; byteX++)
+            {
+                byte b = 0;
+                for (int bit = 0; bit < 8; bit++)
+                {
+                    int x = byteX * 8 + bit;
+                    if (x < scaled.Width)
+                    {
+                        var pixel = scaled.GetPixel(x, y);
+                        // Convertir a escala de grises y umbral
+                        int gray = (pixel.Red * 299 + pixel.Green * 587 + pixel.Blue * 114) / 1000;
+                        if (gray < 128) // negro
+                            b |= (byte)(0x80 >> bit);
+                    }
+                }
+                ms.WriteByte(b);
+            }
+        }
+
+        return ms.ToArray();
     }
 
     private static string TruncateOrPad(string text, int width)

@@ -30,8 +30,8 @@ public class StockMovement : Entity<Guid>
             Id = Guid.NewGuid(),
             ProductId = productId,
             Type = type,
-            Quantity = quantity,
-            StockAfter = stockAfter,
+            Quantity = Quantity.CreateWithSign(quantity.Value),
+            StockAfter = Quantity.Create(stockAfter.Value),
             Reference = reference,
             Notes = notes
         };

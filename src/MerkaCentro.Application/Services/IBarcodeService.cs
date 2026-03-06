@@ -8,6 +8,7 @@ public interface IBarcodeService
     Task<Result<byte[]>> GenerateQrCodeAsync(string content);
     Task<Result<string>> GenerateUniqueCodeAsync(string prefix = "");
     bool ValidateBarcode(string code, BarcodeFormat format);
+    Task<Result<string>> DecodeBarcodeAsync(byte[] imageBytes);
 }
 
 public enum BarcodeFormat

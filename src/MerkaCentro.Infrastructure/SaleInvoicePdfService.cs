@@ -13,6 +13,7 @@ public class SaleInvoicePdfService : ISaleInvoicePdfService
     private readonly string _businessNit;
     private readonly string _businessAddress;
     private readonly string _businessPhone;
+    private readonly byte[]? _logoBytes;
 
     public SaleInvoicePdfService(IConfiguration configuration)
     {
@@ -21,6 +22,12 @@ public class SaleInvoicePdfService : ISaleInvoicePdfService
         _businessNit = configuration["PrinterSettings:BusinessNit"] ?? "";
         _businessAddress = configuration["PrinterSettings:BusinessAddress"] ?? "";
         _businessPhone = configuration["PrinterSettings:BusinessPhone"] ?? "";
+
+        var logoPath = configuration["PrinterSettings:LogoPath"];
+        if (!string.IsNullOrWhiteSpace(logoPath) && File.Exists(logoPath))
+        {
+            _logoBytes = File.ReadAllBytes(logoPath);
+        }
     }
 
     public Task<byte[]> GeneratePdfAsync(SaleDto sale)
@@ -35,7 +42,7 @@ public class SaleInvoicePdfService : ISaleInvoicePdfService
 
                 page.Header().Element(c => ComposeHeader(c, sale));
                 page.Content().Element(c => ComposeContent(c, sale));
-                page.Footer().Element(ComposeFooter);
+                page.Footer().Element(c => ComposeFooter(c, sale));
             });
         });
 
@@ -47,6 +54,13 @@ public class SaleInvoicePdfService : ISaleInvoicePdfService
     {
         container.Column(col =>
         {
+            // Logo + Nombre del negocio
+            if (_logoBytes != null)
+            {
+                col.Item().AlignCenter().Width(80).Image(_logoBytes);
+                col.Item().PaddingTop(5);
+            }
+
             col.Item().AlignCenter().Text(_businessName).Bold().FontSize(16);
 
             if (!string.IsNullOrWhiteSpace(_businessNit))
@@ -175,11 +189,27 @@ public class SaleInvoicePdfService : ISaleInvoicePdfService
         });
     }
 
-    private static void ComposeFooter(IContainer container)
+    private void ComposeFooter(IContainer container, SaleDto sale)
     {
         container.Column(col =>
         {
             col.Item().PaddingVertical(10).LineHorizontal(1);
+
+            // QR Code
+            var qrContent = BuildQrContent(sale);
+            try
+            {
+                var qrBytes = GenerateQrBmp(qrContent);
+                if (qrBytes.Length > 0)
+                {
+                    col.Item().AlignCenter().Width(120).Height(120).Image(qrBytes);
+                }
+            }
+            catch
+            {
+                // Si falla el QR, continuar sin el
+            }
+
             col.Item().AlignCenter().Text("Gracias por su compra").Italic();
             col.Item().AlignCenter().Text(text =>
             {
@@ -189,5 +219,44 @@ public class SaleInvoicePdfService : ISaleInvoicePdfService
                 text.TotalPages();
             });
         });
+    }
+
+    private string BuildQrContent(SaleDto sale)
+    {
+        return $"{_businessName}|NIT:{_businessNit}|{sale.Number}|{sale.CreatedAt:yyyy-MM-dd HH:mm}|Total:${sale.Total:N0}";
+    }
+
+    private static byte[] GenerateQrBmp(string content)
+    {
+        var matrix = Application.Services.BarcodeService.GenerateQrMatrix(content, 200);
+        int w = matrix.Width, h = matrix.Height;
+        int rowSize = (w * 3 + 3) & ~3;
+        int pixelDataSize = rowSize * h;
+        int fileSize = 54 + pixelDataSize;
+        var bmp = new byte[fileSize];
+
+        bmp[0] = 0x42; bmp[1] = 0x4D;
+        BitConverter.GetBytes(fileSize).CopyTo(bmp, 2);
+        BitConverter.GetBytes(54).CopyTo(bmp, 10);
+        BitConverter.GetBytes(40).CopyTo(bmp, 14);
+        BitConverter.GetBytes(w).CopyTo(bmp, 18);
+        BitConverter.GetBytes(h).CopyTo(bmp, 22);
+        BitConverter.GetBytes((short)1).CopyTo(bmp, 26);
+        BitConverter.GetBytes((short)24).CopyTo(bmp, 28);
+        BitConverter.GetBytes(pixelDataSize).CopyTo(bmp, 34);
+
+        for (int y = 0; y < h; y++)
+        {
+            int dstRow = 54 + y * rowSize;
+            for (int x = 0; x < w; x++)
+            {
+                int dstIdx = dstRow + x * 3;
+                byte color = matrix[x, h - 1 - y] ? (byte)0 : (byte)255;
+                bmp[dstIdx] = color;
+                bmp[dstIdx + 1] = color;
+                bmp[dstIdx + 2] = color;
+            }
+        }
+        return bmp;
     }
 }

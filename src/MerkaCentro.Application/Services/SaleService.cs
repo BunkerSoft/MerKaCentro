@@ -110,6 +110,7 @@ public class SaleService : ISaleService
     {
         try
         {
+            // === Validar datos ===
             var cashRegister = await _cashRegisterRepository.GetOpenByUserAsync(userId);
             if (cashRegister == null)
                 return Result<SaleDto>.Failure("Debe abrir una caja antes de realizar ventas");
@@ -125,7 +126,19 @@ public class SaleService : ISaleService
             if (dto.IsCredit && customer == null)
                 return Result<SaleDto>.Failure("Las ventas al credito requieren un cliente");
 
+            // Cargar productos (se usarán para crear items y actualizar stock)
+            var products = new List<Product>();
+            foreach (var itemDto in dto.Items)
+            {
+                var product = await _productRepository.GetByIdAsync(itemDto.ProductId);
+                if (product == null)
+                    return Result<SaleDto>.Failure($"Producto no encontrado: {itemDto.ProductId}");
+                products.Add(product);
+            }
+
             var saleNumber = await _saleRepository.GenerateNextNumberAsync();
+
+            // === Crear la venta ===
             var sale = Sale.Create(
                 saleNumber,
                 cashRegister.Id,
@@ -134,24 +147,28 @@ public class SaleService : ISaleService
                 dto.IsCredit,
                 dto.Notes);
 
-            foreach (var itemDto in dto.Items)
+            for (int i = 0; i < dto.Items.Count; i++)
             {
-                var product = await _productRepository.GetByIdAsync(itemDto.ProductId);
-                if (product == null)
-                    return Result<SaleDto>.Failure($"Producto no encontrado: {itemDto.ProductId}");
+                var itemDto = dto.Items[i];
+                var product = products[i];
 
                 var quantity = Quantity.Create(itemDto.Quantity);
+
+                if (!product.AllowFractions && quantity.Value != Math.Floor(quantity.Value))
+                    return Result<SaleDto>.Failure($"El producto {product.Name} no permite fracciones");
+
                 var unitPrice = itemDto.UnitPrice.HasValue
                     ? Money.Create(itemDto.UnitPrice.Value)
-                    : null;
+                    : Money.Create(product.SalePrice.Amount, product.SalePrice.Currency);
                 var discount = itemDto.DiscountPercent.HasValue
                     ? Percentage.Create(itemDto.DiscountPercent.Value)
-                    : null;
+                    : Percentage.Zero();
 
-                sale.AddItem(product, quantity, unitPrice, discount);
+                var saleItem = SaleItem.Create(sale.Id, product.Id, product.Name, quantity, unitPrice, discount);
+                sale.AddItemDirect(saleItem);
 
-                // No modificar el producto aquí - hacerlo después de guardar la venta
-                // para evitar problemas de EF Core con Owned Entities múltiples
+                // Actualizar stock del producto
+                product.RemoveStock(quantity, MovementType.Sale, saleNumber, null);
             }
 
             foreach (var paymentDto in dto.Payments)
@@ -160,19 +177,17 @@ public class SaleService : ISaleService
                 sale.AddPayment(paymentDto.Method, amount, paymentDto.Reference);
             }
 
-            if (dto.IsCredit && customer != null)
-            {
-                customer.AddDebt(sale.Total);
-            }
-
             sale.Complete();
 
-            // Guardar la venta primero (sin modificar CashRegister ni Stock)
-            // para evitar problemas de EF Core con Owned Entities en grafos complejos
             await _saleRepository.AddAsync(sale);
-            await _unitOfWork.SaveChangesAsync();
 
-            // Actualizar caja registradora DESPUÉS de guardar la venta
+            // Crédito del cliente
+            if (dto.IsCredit && customer != null)
+            {
+                customer.AddDebt(Money.Create(sale.Total.Amount, sale.Total.Currency));
+            }
+
+            // Actualizar caja registradora
             if (!dto.IsCredit)
             {
                 var cashAmount = dto.Payments
@@ -181,24 +196,16 @@ public class SaleService : ISaleService
 
                 if (cashAmount > 0)
                 {
-                    cashRegister.RegisterSale(Money.Create(cashAmount), sale.Number);
-                }
-            }
-
-            // Actualizar stock
-            foreach (var itemDto in dto.Items)
-            {
-                var product = await _productRepository.GetByIdAsync(itemDto.ProductId);
-                if (product != null)
-                {
-                    var quantity = Quantity.Create(itemDto.Quantity);
-                    product.RemoveStock(quantity, MovementType.Sale, sale.Number, null);
+                    cashRegister.RegisterSale(Money.Create(cashAmount), saleNumber);
                 }
             }
 
             await _unitOfWork.SaveChangesAsync();
 
-            return Result<SaleDto>.Success(_mapper.Map<SaleDto>(sale));
+            // Recargar la venta para el DTO de respuesta
+            _unitOfWork.ClearChangeTracker();
+            var savedSale = await _saleRepository.GetWithItemsAsync(sale.Id);
+            return Result<SaleDto>.Success(_mapper.Map<SaleDto>(savedSale!));
         }
         catch (DomainException ex)
         {

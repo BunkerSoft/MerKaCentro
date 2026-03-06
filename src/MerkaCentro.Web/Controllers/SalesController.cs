@@ -15,6 +15,7 @@ public class SalesController : AuthenticatedController
     private readonly ICashRegisterService _cashRegisterService;
     private readonly ITicketPrinterService _ticketPrinterService;
     private readonly ISaleInvoicePdfService _pdfService;
+    private readonly IBarcodeService _barcodeService;
 
     public SalesController(
         ISaleService saleService,
@@ -22,7 +23,8 @@ public class SalesController : AuthenticatedController
         ICustomerService customerService,
         ICashRegisterService cashRegisterService,
         ITicketPrinterService ticketPrinterService,
-        ISaleInvoicePdfService pdfService)
+        ISaleInvoicePdfService pdfService,
+        IBarcodeService barcodeService)
     {
         _saleService = saleService;
         _productService = productService;
@@ -30,6 +32,7 @@ public class SalesController : AuthenticatedController
         _cashRegisterService = cashRegisterService;
         _ticketPrinterService = ticketPrinterService;
         _pdfService = pdfService;
+        _barcodeService = barcodeService;
     }
 
     public async Task<IActionResult> Index(DateTime? from, DateTime? to, int page = 1)
@@ -211,6 +214,27 @@ public class SalesController : AuthenticatedController
             p.CurrentStock,
             p.Unit
         });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> DecodeBarcode()
+    {
+        if (Request.Form.Files.Count == 0)
+            return BadRequest(new { error = "No se envio ninguna imagen." });
+
+        var file = Request.Form.Files[0];
+        if (file.Length == 0 || file.Length > 5 * 1024 * 1024)
+            return BadRequest(new { error = "La imagen debe pesar entre 1 byte y 5 MB." });
+
+        using var ms = new MemoryStream();
+        await file.CopyToAsync(ms);
+        var imageBytes = ms.ToArray();
+
+        var result = await _barcodeService.DecodeBarcodeAsync(imageBytes);
+        if (!result.IsSuccess)
+            return Json(new { success = false, error = result.Error });
+
+        return Json(new { success = true, barcode = result.Value });
     }
 
     [HttpGet]

@@ -18,7 +18,7 @@ public class SaleItem : Entity<Guid>
     {
     }
 
-    internal static SaleItem Create(
+    public static SaleItem Create(
         Guid saleId,
         Guid productId,
         string productName,

@@ -97,13 +97,36 @@ public class Sale : AggregateRoot<Guid>
         }
         else
         {
+            // Crear una copia del precio para evitar compartir la misma instancia
+            // de Owned Entity entre Product y SaleItem (causa DbUpdateConcurrencyException)
+            var price = unitPrice ?? Money.Create(product.SalePrice.Amount, product.SalePrice.Currency);
             var item = SaleItem.Create(
                 Id,
                 product.Id,
                 product.Name,
                 quantity,
-                unitPrice ?? product.SalePrice,
+                price,
                 discount);
+            _items.Add(item);
+        }
+
+        RecalculateTotals();
+    }
+
+    public void AddItemDirect(SaleItem item)
+    {
+        if (Status != SaleStatus.Pending)
+        {
+            throw new DomainException("No se pueden agregar items a una venta que no está pendiente");
+        }
+
+        var existingItem = _items.FirstOrDefault(i => i.ProductId == item.ProductId);
+        if (existingItem is not null)
+        {
+            existingItem.UpdateQuantity(existingItem.Quantity.Add(item.Quantity));
+        }
+        else
+        {
             _items.Add(item);
         }
 

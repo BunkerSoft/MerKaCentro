@@ -493,7 +493,7 @@
 				})),
 				payments: method === 'Credit' ? [] : [{
 					method: method,
-					amount: total,
+					amount: method === 'Cash' ? (parseFloat(document.getElementById('cashReceived').value) || total) : total,
 					reference: method === 'Card' ? document.getElementById('cardReference').value : null
 				}]
 			};

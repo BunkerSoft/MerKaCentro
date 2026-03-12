@@ -99,6 +99,7 @@ public class EscPosTicketPrinterService : ITicketPrinterService
             Write(ms, ESC_ALIGN_LEFT);
             WriteText(ms, $"Ticket: {sale.Number}");
             WriteText(ms, $"Fecha: {sale.CreatedAt:dd/MM/yyyy HH:mm}");
+            WriteText(ms, $"Vendedor: {sale.UserName}");
             if (!string.IsNullOrWhiteSpace(sale.CustomerName))
                 WriteText(ms, $"Cliente: {sale.CustomerName}");
 

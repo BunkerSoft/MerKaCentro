@@ -10,6 +10,9 @@
         <i class="bi bi-box me-2"></i>@Model?.Name
     </h1>
     <div>
+        <a asp-action="PrintBarcode" asp-route-id="@Model?.Id" class="btn btn-success">
+            <i class="bi bi-upc-scan me-1"></i>Imprimir Codigo
+        </a>
         <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">
             <i class="bi bi-pencil me-1"></i>Editar
         </a>
@@ -35,7 +38,14 @@
                                 <dd><code class="fs-5">@Model.Code</code></dd>
 
                                 <dt>Codigo de Barras</dt>
-                                <dd>@(Model.Barcode ?? "-")</dd>
+                                <dd>
+                                    @(Model.Barcode ?? "-")
+                                    @if (!string.IsNullOrEmpty(Model.Barcode))
+                                    {
+                                        <br />
+                                        <img src="@Url.Action("BarcodeImage", new { id = Model.Id })" alt="Codigo de barras" class="mt-2" style="max-width:200px;" />
+                                    }
+                                </dd>
 
                                 <dt>Categoria</dt>
                                 <dd>@Model.CategoryName</dd>

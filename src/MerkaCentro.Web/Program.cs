@@ -51,7 +51,6 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Account}/{action=Login}/{id?}");
 
-// Seeding products using raw SQL - temporarily disabled for debugging
-// await DataSeeder.SeedAsync(app.Services);
+await DataSeeder.SeedAsync(app.Services);
 
 app.Run();

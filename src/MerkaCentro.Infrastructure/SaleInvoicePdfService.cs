@@ -80,15 +80,14 @@ public class SaleInvoicePdfService : ISaleInvoicePdfService
                 {
                     left.Item().Text($"Factura: {sale.Number}").Bold();
                     left.Item().Text($"Fecha: {sale.CreatedAt:dd/MM/yyyy HH:mm}");
+                    left.Item().Text($"Vendedor: {sale.UserName}");
                 });
 
-                if (!string.IsNullOrWhiteSpace(sale.CustomerName))
+                row.RelativeItem().Column(right =>
                 {
-                    row.RelativeItem().Column(right =>
-                    {
+                    if (!string.IsNullOrWhiteSpace(sale.CustomerName))
                         right.Item().Text($"Cliente: {sale.CustomerName}");
-                    });
-                }
+                });
             });
 
             col.Item().PaddingVertical(5).LineHorizontal(1);
@@ -167,9 +166,7 @@ public class SaleInvoicePdfService : ISaleInvoicePdfService
             {
                 payInfo.Item().Text($"Metodo de pago: {sale.PaymentMethod}");
                 payInfo.Item().Text($"Monto pagado: $ {sale.AmountPaid:N0}");
-
-                if (sale.Change > 0)
-                    payInfo.Item().Text($"Cambio: $ {sale.Change:N0}");
+                payInfo.Item().Text($"Cambio: $ {sale.Change:N0}");
             });
 
             if (sale.Payments.Count > 1)

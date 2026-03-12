@@ -18,6 +18,7 @@ public class SaleRepository : RepositoryBase<Sale, Guid>, ISaleRepository
             .Include(s => s.Items)
             .Include(s => s.Payments)
             .Include(s => s.Customer)
+            .Include(s => s.User)
             .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
     }
 
@@ -27,6 +28,7 @@ public class SaleRepository : RepositoryBase<Sale, Guid>, ISaleRepository
             .Include(s => s.Items)
             .Include(s => s.Payments)
             .Include(s => s.Customer)
+            .Include(s => s.User)
             .FirstOrDefaultAsync(s => s.Number == saleNumber, cancellationToken);
     }
 
@@ -35,6 +37,7 @@ public class SaleRepository : RepositoryBase<Sale, Guid>, ISaleRepository
         return await DbSet
             .Include(s => s.Items)
             .Include(s => s.Payments)
+            .Include(s => s.User)
             .Where(s => s.CustomerId == customerId)
             .OrderByDescending(s => s.CreatedAt)
             .ToListAsync(cancellationToken);
@@ -45,6 +48,7 @@ public class SaleRepository : RepositoryBase<Sale, Guid>, ISaleRepository
         return await DbSet
             .Include(s => s.Items)
             .Include(s => s.Payments)
+            .Include(s => s.User)
             .Where(s => s.CashRegisterId == cashRegisterId)
             .OrderByDescending(s => s.CreatedAt)
             .ToListAsync(cancellationToken);
@@ -56,6 +60,7 @@ public class SaleRepository : RepositoryBase<Sale, Guid>, ISaleRepository
             .Include(s => s.Items)
             .Include(s => s.Payments)
             .Include(s => s.Customer)
+            .Include(s => s.User)
             .Where(s => s.CreatedAt >= from && s.CreatedAt <= to)
             .OrderByDescending(s => s.CreatedAt)
             .ToListAsync(cancellationToken);
@@ -66,6 +71,7 @@ public class SaleRepository : RepositoryBase<Sale, Guid>, ISaleRepository
         return await DbSet
             .Include(s => s.Items)
             .Include(s => s.Payments)
+            .Include(s => s.User)
             .Where(s => s.Status == status)
             .OrderByDescending(s => s.CreatedAt)
             .ToListAsync(cancellationToken);
@@ -106,6 +112,7 @@ public class SaleRepository : RepositoryBase<Sale, Guid>, ISaleRepository
             .Include(s => s.Items)
             .Include(s => s.Payments)
             .Include(s => s.Customer)
+            .Include(s => s.User)
             .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
     }
 

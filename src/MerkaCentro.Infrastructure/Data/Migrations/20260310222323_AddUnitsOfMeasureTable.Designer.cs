@@ -4,6 +4,7 @@ using MerkaCentro.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MerkaCentro.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(MerkaCentroDbContext))]
-    partial class MerkaCentroDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260310222323_AddUnitsOfMeasureTable")]
+    partial class AddUnitsOfMeasureTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -44,12 +44,15 @@
                             <label asp-for="UnitOfMeasure" class="form-label">Unidad de Medida <span class="text-danger">*</span></label>
                             <select asp-for="UnitOfMeasure" class="form-select">
                                 <option value="">-- Seleccione --</option>
-                                <option value="UND">Unidad (UND)</option>
-                                <option value="KG">Kilogramo (KG)</option>
-                                <option value="LT">Litro (LT)</option>
-                                <option value="MT">Metro (MT)</option>
-                                <option value="PAQ">Paquete (PAQ)</option>
-                                <option value="CAJ">Caja (CAJ)</option>
+                                @foreach (var group in (IEnumerable<MerkaCentro.Application.Services.UnitOfMeasureGroupDto>)ViewBag.UnitGroups)
+                                {
+                                    <optgroup label="@group.Group">
+                                        @foreach (var unit in group.Units)
+                                        {
+                                            <option value="@unit.Code">@unit.Name (@unit.Code)</option>
+                                        }
+                                    </optgroup>
+                                }
                             </select>
                             <span asp-validation-for="UnitOfMeasure" class="text-danger"></span>
                         </div>

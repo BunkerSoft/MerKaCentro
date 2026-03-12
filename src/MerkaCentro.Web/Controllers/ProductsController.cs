@@ -8,11 +8,19 @@ public class ProductsController : Controller
 {
     private readonly IProductService _productService;
     private readonly ICategoryService _categoryService;
+    private readonly IBarcodeService _barcodeService;
+    private readonly IUnitOfMeasureService _unitOfMeasureService;
 
-    public ProductsController(IProductService productService, ICategoryService categoryService)
+    public ProductsController(
+        IProductService productService,
+        ICategoryService categoryService,
+        IBarcodeService barcodeService,
+        IUnitOfMeasureService unitOfMeasureService)
     {
         _productService = productService;
         _categoryService = categoryService;
+        _barcodeService = barcodeService;
+        _unitOfMeasureService = unitOfMeasureService;
     }
 
     public async Task<IActionResult> Index(string? search, int page = 1)
@@ -171,11 +179,52 @@ public class ProductsController : Controller
         return Json(result.Value);
     }
 
+    [HttpGet]
+    public async Task<IActionResult> BarcodeImage(Guid id, string? format)
+    {
+        var product = await _productService.GetByIdAsync(id);
+        if (!product.IsSuccess || product.Value is null)
+            return NotFound();
+
+        var code = product.Value.Barcode ?? product.Value.Code;
+        var barcodeFormat = format?.ToLowerInvariant() switch
+        {
+            "ean13" => BarcodeFormat.Ean13,
+            "ean8" => BarcodeFormat.Ean8,
+            "code39" => BarcodeFormat.Code39,
+            _ => BarcodeFormat.Code128
+        };
+
+        var result = await _barcodeService.GenerateBarcodeAsync(code, barcodeFormat);
+        if (!result.IsSuccess)
+            return BadRequest(result.Error);
+
+        return File(result.Value!, "image/bmp");
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> PrintBarcode(Guid id)
+    {
+        var product = await _productService.GetByIdAsync(id);
+        if (!product.IsSuccess || product.Value is null)
+        {
+            TempData["Error"] = "Producto no encontrado";
+            return RedirectToAction(nameof(Index));
+        }
+
+        return View(product.Value);
+    }
+
     private async Task LoadCategoriesAsync()
     {
         var categoriesResult = await _categoryService.GetActiveAsync();
         ViewBag.Categories = categoriesResult.IsSuccess
             ? new SelectList(categoriesResult.Value, "Id", "Name")
             : new SelectList(Enumerable.Empty<object>());
+
+        var unitsResult = await _unitOfMeasureService.GetActiveGroupedAsync();
+        ViewBag.UnitGroups = unitsResult.IsSuccess
+            ? unitsResult.Value!.ToList()
+            : new List<UnitOfMeasureGroupDto>();
     }
 }

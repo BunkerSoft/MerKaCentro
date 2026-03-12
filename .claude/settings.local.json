@@ -27,7 +27,11 @@
       "Bash(git branch:*)",
       "Bash(git push:*)",
       "Bash(grep:*)",
-      "Bash(dotnet add:*)"
+      "Bash(dotnet add:*)",
+      "Bash(xxd:*)",
+      "Bash(dotnet tool:*)",
+      "Bash(wc:*)",
+      "Bash(dotnet ef:*)"
     ]
   }
 }

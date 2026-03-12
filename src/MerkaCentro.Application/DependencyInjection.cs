@@ -10,6 +10,9 @@ public static class DependencyInjection
     {
         services.AddAutoMapper(cfg => cfg.AddProfile<MappingProfile>());
 
+        // Catalogos
+        services.AddScoped<IUnitOfMeasureService, UnitOfMeasureService>();
+
         // Fase 2 - Módulos Core
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IProductService, ProductService>();

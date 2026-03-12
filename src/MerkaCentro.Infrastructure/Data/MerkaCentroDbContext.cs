@@ -36,6 +36,9 @@ public class MerkaCentroDbContext : DbContext
     public DbSet<Alert> Alerts => Set<Alert>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
+    // Catalogs
+    public DbSet<UnitOfMeasure> UnitsOfMeasure => Set<UnitOfMeasure>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Ignore ProductPriceHistory FIRST - disabled due to EF Core Owned Entity tracking issues

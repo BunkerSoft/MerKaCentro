@@ -18,6 +18,7 @@ public static class DataSeeder
 
         try
         {
+            await SeedUnitsOfMeasureAsync(context, logger);
             await SeedUsersAsync(context, logger);
             await SeedCategoriesAsync(context, logger);
             await SeedExpenseCategoriesAsync(context, logger);
@@ -183,5 +184,102 @@ public static class DataSeeder
     private static string HashPassword(string password)
     {
         return PasswordHasher.Hash(password);
+    }
+
+    private static async Task SeedUnitsOfMeasureAsync(MerkaCentroDbContext context, ILogger logger)
+    {
+        if (await context.UnitsOfMeasure.AnyAsync())
+            return;
+
+        var units = new[]
+        {
+            // Unidades
+            UnitOfMeasure.Create("UND", "Unidad", "Unidades", false, 1),
+            UnitOfMeasure.Create("PAR", "Par", "Unidades", false, 2),
+            UnitOfMeasure.Create("DOC", "Docena", "Unidades", false, 3),
+            UnitOfMeasure.Create("MDDOC", "Media Docena", "Unidades", false, 4),
+
+            // Peso
+            UnitOfMeasure.Create("KG", "Kilogramo", "Peso", true, 10),
+            UnitOfMeasure.Create("GR", "Gramo", "Peso", true, 11),
+            UnitOfMeasure.Create("MG", "Miligramo", "Peso", true, 12),
+            UnitOfMeasure.Create("LB", "Libra", "Peso", true, 13),
+            UnitOfMeasure.Create("OZ", "Onza", "Peso", true, 14),
+            UnitOfMeasure.Create("TON", "Tonelada", "Peso", true, 15),
+            UnitOfMeasure.Create("QQ", "Quintal", "Peso", true, 16),
+            UnitOfMeasure.Create("ARR", "Arroba", "Peso", true, 17),
+
+            // Volumen / Liquidos
+            UnitOfMeasure.Create("LT", "Litro", "Volumen / Liquidos", true, 20),
+            UnitOfMeasure.Create("ML", "Mililitro", "Volumen / Liquidos", true, 21),
+            UnitOfMeasure.Create("GL", "Galon", "Volumen / Liquidos", true, 22),
+            UnitOfMeasure.Create("CC", "Centimetro Cubico", "Volumen / Liquidos", true, 23),
+            UnitOfMeasure.Create("FLOZ", "Onza Liquida", "Volumen / Liquidos", true, 24),
+
+            // Longitud
+            UnitOfMeasure.Create("MT", "Metro", "Longitud", true, 30),
+            UnitOfMeasure.Create("CM", "Centimetro", "Longitud", true, 31),
+            UnitOfMeasure.Create("MM", "Milimetro", "Longitud", true, 32),
+            UnitOfMeasure.Create("PLG", "Pulgada", "Longitud", true, 33),
+            UnitOfMeasure.Create("YD", "Yarda", "Longitud", true, 34),
+            UnitOfMeasure.Create("FT", "Pie", "Longitud", true, 35),
+
+            // Area / Superficie
+            UnitOfMeasure.Create("M2", "Metro Cuadrado", "Area / Superficie", true, 40),
+            UnitOfMeasure.Create("CM2", "Centimetro Cuadrado", "Area / Superficie", true, 41),
+            UnitOfMeasure.Create("FT2", "Pie Cuadrado", "Area / Superficie", true, 42),
+
+            // Empaque / Contenedor
+            UnitOfMeasure.Create("PAQ", "Paquete", "Empaque / Contenedor", false, 50),
+            UnitOfMeasure.Create("CAJ", "Caja", "Empaque / Contenedor", false, 51),
+            UnitOfMeasure.Create("BLS", "Bolsa", "Empaque / Contenedor", false, 52),
+            UnitOfMeasure.Create("SCH", "Sachet", "Empaque / Contenedor", false, 53),
+            UnitOfMeasure.Create("SBR", "Sobre", "Empaque / Contenedor", false, 54),
+            UnitOfMeasure.Create("BDJ", "Bandeja", "Empaque / Contenedor", false, 55),
+            UnitOfMeasure.Create("LAT", "Lata", "Empaque / Contenedor", false, 56),
+            UnitOfMeasure.Create("FCO", "Frasco", "Empaque / Contenedor", false, 57),
+            UnitOfMeasure.Create("BOT", "Botella", "Empaque / Contenedor", false, 58),
+            UnitOfMeasure.Create("GAR", "Garrafa", "Empaque / Contenedor", false, 59),
+            UnitOfMeasure.Create("BID", "Bidon", "Empaque / Contenedor", false, 60),
+            UnitOfMeasure.Create("TAR", "Tarro", "Empaque / Contenedor", false, 61),
+            UnitOfMeasure.Create("TBO", "Tubo", "Empaque / Contenedor", false, 62),
+            UnitOfMeasure.Create("TRO", "Tetrabrik", "Empaque / Contenedor", false, 63),
+            UnitOfMeasure.Create("BAR", "Barra", "Empaque / Contenedor", false, 64),
+            UnitOfMeasure.Create("BLK", "Blister", "Empaque / Contenedor", false, 65),
+            UnitOfMeasure.Create("DSP", "Display", "Empaque / Contenedor", false, 66),
+
+            // Agrupacion / Bulto
+            UnitOfMeasure.Create("BTO", "Bulto", "Agrupacion / Bulto", false, 70),
+            UnitOfMeasure.Create("SCO", "Saco", "Agrupacion / Bulto", false, 71),
+            UnitOfMeasure.Create("PCK", "Pack", "Agrupacion / Bulto", false, 72),
+            UnitOfMeasure.Create("SIX", "Six Pack", "Agrupacion / Bulto", false, 73),
+            UnitOfMeasure.Create("TRP", "Tira", "Agrupacion / Bulto", false, 74),
+            UnitOfMeasure.Create("ATD", "Atado", "Agrupacion / Bulto", false, 75),
+            UnitOfMeasure.Create("MAZ", "Manojo", "Agrupacion / Bulto", false, 76),
+            UnitOfMeasure.Create("RCM", "Racimo", "Agrupacion / Bulto", false, 77),
+            UnitOfMeasure.Create("PLT", "Pallet", "Agrupacion / Bulto", false, 78),
+
+            // Rollos / Pliegos
+            UnitOfMeasure.Create("RLL", "Rollo", "Rollos / Pliegos", false, 80),
+            UnitOfMeasure.Create("PLI", "Pliego", "Rollos / Pliegos", false, 81),
+            UnitOfMeasure.Create("HJA", "Hoja", "Rollos / Pliegos", false, 82),
+            UnitOfMeasure.Create("RMA", "Resma", "Rollos / Pliegos", false, 83),
+
+            // Otros
+            UnitOfMeasure.Create("SRV", "Servicio", "Otros", false, 90),
+            UnitOfMeasure.Create("KIT", "Kit", "Otros", false, 91),
+            UnitOfMeasure.Create("JGO", "Juego", "Otros", false, 92),
+            UnitOfMeasure.Create("PZA", "Pieza", "Otros", false, 93),
+            UnitOfMeasure.Create("TAB", "Tableta", "Otros", false, 94),
+            UnitOfMeasure.Create("CAP", "Capsula", "Otros", false, 95),
+            UnitOfMeasure.Create("AMP", "Ampolla", "Otros", false, 96),
+            UnitOfMeasure.Create("GAL", "Galleta", "Otros", false, 97),
+            UnitOfMeasure.Create("POR", "Porcion", "Otros", true, 98),
+            UnitOfMeasure.Create("REB", "Rebanada", "Otros", false, 99),
+        };
+
+        context.UnitsOfMeasure.AddRange(units);
+        await context.SaveChangesAsync();
+        logger.LogInformation("Unidades de medida creadas: {Count}", units.Length);
     }
 }

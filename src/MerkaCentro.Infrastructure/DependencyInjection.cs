@@ -33,6 +33,9 @@ public static class DependencyInjection
         services.AddScoped<IIdempotencyRepository, IdempotencyRepository>();
         services.AddScoped<ISyncQueueRepository, SyncQueueRepository>();
 
+        // Catalogs
+        services.AddScoped<IUnitOfMeasureRepository, UnitOfMeasureRepository>();
+
         // Stage 5 - Polish
         services.AddScoped<IAlertRepository, AlertRepository>();
         services.AddScoped<IAuditLogRepository, AuditLogRepository>();
